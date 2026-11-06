@@ -90,6 +90,14 @@ class SupabaseClient
     }
 
     /**
+     * Alias for signIn
+     */
+    public function signInWithPassword(string $email, string $password): array
+    {
+        return $this->signIn($email, $password);
+    }
+
+    /**
      * Request password reset email via Supabase Auth
      */
     public function resetPassword(string $email, ?string $redirectTo = null): array

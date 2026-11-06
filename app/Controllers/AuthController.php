@@ -54,7 +54,7 @@ class AuthController
 
         // If access token was not directly returned by signup, attempt immediate signin
         if (empty($token)) {
-            $loginRes = $supabase->signInWithPassword($email, $password);
+            $loginRes = $supabase->signIn($email, $password);
             if (!empty($loginRes['data']['access_token'])) {
                 $token = $loginRes['data']['access_token'];
                 $session = $loginRes['data'];
