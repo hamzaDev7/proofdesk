@@ -50,9 +50,21 @@ class AuthController
         $user = $signUpRes['data']['user'] ?? $signUpRes['data'];
         $userId = $user['id'];
         $token = $signUpRes['data']['access_token'] ?? null;
+        $session = $signUpRes['data']['session'] ?? $signUpRes['data'];
 
+        // If access token was not directly returned by signup, attempt immediate signin
+        if (empty($token)) {
+            $loginRes = $supabase->signInWithPassword($email, $password);
+            if (!empty($loginRes['data']['access_token'])) {
+                $token = $loginRes['data']['access_token'];
+                $session = $loginRes['data'];
+            }
+        }
+
+        // Use user token client if available, or service role fallback
+        $userClient = !empty($token) ? SupabaseClient::forUser($token) : SupabaseClient::serviceRole();
+        
         // Ensure profile exists
-        $userClient = SupabaseClient::forUser($token);
         $userClient->from('profiles')->insert([
             'id' => $userId,
             'full_name' => $fullName,
@@ -92,10 +104,11 @@ class AuthController
             ],
             'session' => [
                 'access_token' => $token,
-                'refresh_token' => $signUpRes['data']['refresh_token'] ?? null,
-                'expires_at' => $signUpRes['data']['expires_at'] ?? null
+                'refresh_token' => $session['refresh_token'] ?? null,
+                'expires_at' => $session['expires_at'] ?? null
             ],
-            'workspace' => $workspace
+            'workspace' => $workspace,
+            'requires_email_confirmation' => empty($token)
         ], 'Registration successful', 201);
     }
 
@@ -264,8 +277,36 @@ class AuthController
             Response::error('Valid email is required', 422, $validation['errors']);
         }
 
+        // Dynamically detect the hosted frontend URL
+        $clientOrigin = $request->getHeader('origin');
+        if (empty($clientOrigin)) {
+            $referer = $request->getHeader('referer');
+            if (!empty($referer)) {
+                $parsed = parse_url($referer);
+                $clientOrigin = ($parsed['scheme'] ?? 'https') . '://' . ($parsed['host'] ?? '');
+                if (!empty($parsed['port']) && !in_array($parsed['port'], [80, 443])) {
+                    $clientOrigin .= ':' . $parsed['port'];
+                }
+            }
+        }
+
+        $host = $request->getHeader('x-forwarded-host') ?? $request->getHeader('host') ?? '';
+        $proto = $request->getHeader('x-forwarded-proto') ?? 'https';
+        $detectedUrl = ($host !== '') ? ($proto . '://' . $host) : null;
+
+        $targetUrl = $body['redirect_url']
+            ?? $clientOrigin
+            ?? $detectedUrl
+            ?? Env::get('APP_URL', 'https://proofdesk-rosy.vercel.app');
+
+        // Target should point to login.html
+        if (!str_ends_with($targetUrl, '.html')) {
+            $redirectUrl = rtrim($targetUrl, '/') . '/login.html';
+        } else {
+            $redirectUrl = $targetUrl;
+        }
+
         $supabase = new SupabaseClient();
-        $redirectUrl = $body['redirect_url'] ?? null;
         $res = $supabase->resetPassword(trim($body['email']), $redirectUrl);
 
         if ($res['status'] >= 400) {

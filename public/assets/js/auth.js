@@ -54,7 +54,11 @@ const Auth = {
 
   requireAuth() {
     if (!this.isAuthenticated()) {
-      window.location.href = 'login.html';
+      try {
+        if (window.stop) window.stop();
+        document.documentElement.style.display = 'none';
+      } catch (e) {}
+      window.location.replace('login.html');
       return false;
     }
     return true;
@@ -64,7 +68,11 @@ const Auth = {
     if (!this.requireAuth()) return false;
     const user = this.getUser();
     if (!user) {
-      window.location.href = 'login.html';
+      try {
+        if (window.stop) window.stop();
+        document.documentElement.style.display = 'none';
+      } catch (e) {}
+      window.location.replace('login.html');
       return false;
     }
 
@@ -77,7 +85,7 @@ const Auth = {
 
     if (!allowedRoles.includes(currentRole) && !allowedRoles.includes(user.role)) {
       alert('Access restricted: You do not have permission to view this page.');
-      window.location.href = 'dashboard.html';
+      window.location.replace('dashboard.html');
       return false;
     }
     return true;

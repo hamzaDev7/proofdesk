@@ -149,12 +149,21 @@
           password
         });
 
-        if (res.data) {
+        if (res.data && res.data.session && res.data.session.access_token) {
           Auth.saveSession(res.data);
           UI.toast('Workspace created successfully!', 'success');
           setTimeout(() => {
-            window.location.href = 'dashboard.html';
+            window.location.replace('dashboard.html');
           }, 500);
+        } else {
+          // Email confirmation is required by Supabase Auth
+          alertBox.className = 'alert-box alert-success';
+          alertBox.textContent = 'Account created successfully! Please check your email inbox to verify your account, then sign in.';
+          alertBox.style.display = 'block';
+          submitBtn.disabled = false;
+          btnText.style.display = 'inline';
+          btnSpinner.style.display = 'none';
+          UI.toast('Account created! Please verify your email before logging in.', 'info');
         }
       } catch (err) {
         alertBox.textContent = err.message || 'Registration failed. Please try again.';

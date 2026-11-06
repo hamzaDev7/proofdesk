@@ -9,25 +9,16 @@ class CorsMiddleware
 {
     public function handle(Request $request): void
     {
-        $origin = $request->getHeader('origin', '*');
-        $allowed = Env::get('CORS_ALLOWED_ORIGINS', '*');
+        $origin = $request->getHeader('origin', '');
 
-        if ($allowed !== '*') {
-            $allowedList = array_map('trim', explode(',', $allowed));
-            if (in_array($origin, $allowedList)) {
-                header('Access-Control-Allow-Origin: ' . $origin);
-            } else {
-                // If localhost development, be permissive
-                if (str_contains($origin, 'localhost') || str_contains($origin, '127.0.0.1')) {
-                    header('Access-Control-Allow-Origin: ' . $origin);
-                }
-            }
+        if (!empty($origin)) {
+            header('Access-Control-Allow-Origin: ' . $origin);
         } else {
             header('Access-Control-Allow-Origin: *');
         }
 
         header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
-        header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, apikey, prefer');
+        header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, apikey, prefer, x-workspace-id');
         header('Access-Control-Allow-Credentials: true');
         header('Access-Control-Max-Age: 86400');
 
