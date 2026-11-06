@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications – ProofDesk</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    <div id="sidebar-mount"></div>
+
+    <main class="app-main">
+      <div id="topbar-mount"></div>
+
+      <div class="page-content" style="max-width: 860px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
+          <div>
+            <h1 style="font-size: 24px; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px;">Notifications</h1>
+            <p style="font-size: 13.5px; color: var(--text-muted);">Stay informed on deliverable uploads, client approvals, and revisions</p>
+          </div>
+          <button class="btn btn-outline" onclick="handleMarkAllRead()">
+            <i data-lucide="check-check" style="width: 15px; height: 15px;"></i> Mark All as Read
+          </button>
+        </div>
+
+        <div class="card">
+          <div id="notificationsList" style="display: flex; flex-direction: column;">
+            <div style="text-align: center; color: var(--text-muted); padding: 40px;">
+              Loading notifications...
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/ui.js"></script>
+  <script>
+    Auth.requireAuth();
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      UI.renderLayout('notifications');
+      document.getElementById('pageTitleHeading').textContent = 'Notifications';
+      await loadNotifications();
+    });
+
+    async function loadNotifications() {
+      try {
+        const res = await API.get('/notifications');
+        const notifs = (res.data && res.data.notifications) ? res.data.notifications : [];
+        renderNotifications(notifs);
+      } catch (err) {
+        console.error('Failed to load notifications:', err);
+        UI.toast('Failed to load notifications: ' + err.message, 'error');
+      }
+    }
+
+    function renderNotifications(notifs) {
+      const container = document.getElementById('notificationsList');
+      if (notifs.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon"><i data-lucide="bell-off"></i></div>
+            <div class="empty-state-title">No notifications</div>
+            <div class="empty-state-desc">You are completely up to date with deliverables and review events.</div>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = notifs.map(n => `
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 18px 24px; border-bottom: 1px solid var(--border); background-color: ${n.is_read ? 'transparent' : 'var(--primary-light)'};">
+          <div style="display: flex; gap: 14px; flex: 1;">
+            <div style="width: 36px; height: 36px; border-radius: var(--radius-full); background: ${n.is_read ? 'var(--surface-alt)' : 'var(--primary)'}; color: ${n.is_read ? 'var(--text-muted)' : '#fff'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <i data-lucide="bell" style="width: 16px; height: 16px;"></i>
+            </div>
+            <div>
+              <div style="font-weight: 700; color: var(--text-main); font-size: 14px; margin-bottom: 2px;">
+                ${n.title}
+                ${!n.is_read ? '<span style="display: inline-block; width: 6px; height: 6px; background: var(--primary); border-radius: 50%; margin-left: 6px; vertical-align: middle;"></span>' : ''}
+              </div>
+              <div style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5;">${n.message}</div>
+              <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 6px;">${UI.formatDate(n.created_at)}</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            ${n.link ? `
+            <a href="${n.link}" class="btn btn-outline btn-sm" onclick="markRead('${n.id}')">View</a>
+            ` : ''}
+            ${!n.is_read ? `
+            <button class="btn btn-icon btn-outline btn-sm" onclick="markRead('${n.id}')" title="Mark as Read">
+              <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+            </button>
+            ` : ''}
+          </div>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    async function markRead(id) {
+      try {
+        await API.put(`/notifications/${id}/read`);
+        await loadNotifications();
+      } catch (err) {
+        console.error('Failed to mark notification read:', err);
+      }
+    }
+
+    async function handleMarkAllRead() {
+      try {
+        await API.post('/notifications/mark-all-read');
+        UI.toast('All notifications marked as read', 'success');
+        await loadNotifications();
+      } catch (err) {
+        UI.toast('Failed to update notifications: ' + err.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>

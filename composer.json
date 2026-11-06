@@ -1,0 +1,19 @@
+{
+    "name": "proofdesk/saas",
+    "description": "ProofDesk - Client Project & Approval Management SaaS",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "ProofDesk\\": "app/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    }
+}

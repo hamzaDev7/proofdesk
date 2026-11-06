@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deliverables & Assets – ProofDesk</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .dropzone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px 20px;
+      text-align: center;
+      background-color: var(--surface-alt);
+      cursor: pointer;
+      transition: var(--transition);
+      margin-bottom: 16px;
+    }
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--primary);
+      background-color: var(--primary-light);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div id="sidebar-mount"></div>
+
+    <main class="app-main">
+      <div id="topbar-mount"></div>
+
+      <div class="page-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
+          <div>
+            <h1 style="font-size: 24px; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px;">Deliverables</h1>
+            <p style="font-size: 13.5px; color: var(--text-muted);">Manage versioned digital assets, client sign-offs, and file downloads</p>
+          </div>
+          <button class="btn btn-primary" onclick="openUploadModal()">
+            <i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i> Upload Deliverable
+          </button>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="card" style="margin-bottom: 24px; padding: 16px 20px;">
+          <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 220px;">
+              <select id="projectFilter" class="form-select" onchange="filterDeliverables()">
+                <option value="">All Projects</option>
+              </select>
+            </div>
+            <div style="min-width: 180px;">
+              <select id="statusFilter" class="form-select" onchange="filterDeliverables()">
+                <option value="">All Review Statuses</option>
+                <option value="pending">Pending Client Review</option>
+                <option value="approved">Approved</option>
+                <option value="revision_requested">Revisions Requested</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Deliverables Table -->
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Deliverable Asset</th>
+                <th>Project</th>
+                <th>Version</th>
+                <th>File Size</th>
+                <th>Status</th>
+                <th>Uploaded By</th>
+                <th>Date</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="deliverablesTableBody">
+              <tr>
+                <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 40px;">
+                  Loading deliverables...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Upload Deliverable Modal -->
+  <div class="modal-backdrop" id="uploadModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title">Upload New Deliverable</div>
+        <button class="btn btn-icon btn-outline btn-sm" onclick="UI.closeModal('uploadModal')">
+          <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+        </button>
+      </div>
+      <form id="uploadForm" onsubmit="handleUploadDeliverable(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="uploadProject">Select Project *</label>
+            <select id="uploadProject" class="form-select" required>
+              <option value="">-- Choose target project --</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="deliverableTitle">Deliverable Title *</label>
+            <input type="text" id="deliverableTitle" class="form-control" placeholder="e.g. Logo Lockup Presentation & Vector Suite" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="deliverableDesc">Notes / Context for Client</label>
+            <textarea id="deliverableDesc" class="form-textarea" placeholder="Detail the modifications or what the client should review..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Asset File * (Images, PDF, Video, Documents, ZIP up to 50MB)</label>
+            <div class="dropzone" id="fileDropzone" onclick="document.getElementById('fileInput').click()">
+              <i data-lucide="upload-cloud" style="width: 36px; height: 36px; color: var(--primary); margin-bottom: 8px;"></i>
+              <div style="font-weight: 600; font-size: 13.5px; color: var(--text-main);" id="dropzoneText">
+                Click to browse or drag file here
+              </div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+                PDF, PNG, JPG, MP4, DOCX, ZIP
+              </div>
+              <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(this)">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="UI.closeModal('uploadModal')">Cancel</button>
+          <button type="submit" id="uploadSubmitBtn" class="btn btn-primary">
+            <span id="uploadBtnText">Upload & Initiate Approval</span>
+            <div id="uploadSpinner" class="spinner" style="display: none;"></div>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/ui.js"></script>
+  <script>
+    Auth.requireAuth();
+
+    let allDeliverables = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await UI.renderLayout('deliverables');
+      document.getElementById('pageTitleHeading').textContent = 'Deliverables';
+      await loadProjectsList();
+      await loadDeliverables();
+    });
+
+    async function loadProjectsList() {
+      try {
+        const res = await API.get('/projects');
+        const projects = res.data || [];
+
+        const filterSelect = document.getElementById('projectFilter');
+        const uploadSelect = document.getElementById('uploadProject');
+
+        filterSelect.innerHTML = '<option value="">All Projects</option>' +
+          projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
+        uploadSelect.innerHTML = '<option value="">-- Choose target project --</option>' +
+          projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+      } catch (err) {
+        console.error('Failed to load projects:', err);
+      }
+    }
+
+    async function loadDeliverables() {
+      try {
+        const res = await API.get('/deliverables');
+        allDeliverables = res.data || [];
+        renderDeliverablesTable(allDeliverables);
+      } catch (err) {
+        console.error('Failed to load deliverables:', err);
+        UI.toast('Failed to load deliverables: ' + err.message, 'error');
+      }
+    }
+
+    function filterDeliverables() {
+      const projId = document.getElementById('projectFilter').value;
+      const status = document.getElementById('statusFilter').value;
+
+      const filtered = allDeliverables.filter(d => {
+        const matchesProj = !projId || d.project_id === projId;
+        const matchesStatus = !status || d.status === status;
+        return matchesProj && matchesStatus;
+      });
+
+      renderDeliverablesTable(filtered);
+    }
+
+    function renderDeliverablesTable(deliverables) {
+      const tbody = document.getElementById('deliverablesTableBody');
+      if (deliverables.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8">
+              <div class="empty-state">
+                <div class="empty-state-icon"><i data-lucide="layers"></i></div>
+                <div class="empty-state-title">No deliverables found</div>
+                <div class="empty-state-desc">Upload deliverables for your clients to inspect, review, and approve.</div>
+                <button class="btn btn-primary" onclick="openUploadModal()">Upload Deliverable</button>
+              </div>
+            </td>
+          </tr>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      tbody.innerHTML = deliverables.map(d => {
+        const projName = d.projects ? d.projects.name : 'Unknown';
+        const uploaderName = d.profiles ? d.profiles.full_name : 'Team Member';
+
+        return `
+          <tr>
+            <td>
+              <div style="font-weight: 700; color: var(--text-main); font-size: 14px;">${d.title}</div>
+              <div style="font-size: 11.5px; color: var(--text-muted);">${d.file_type}</div>
+            </td>
+            <td>
+              <a href="project-details.html?id=${d.project_id}" style="color: var(--primary); font-weight: 600;">
+                ${projName}
+              </a>
+            </td>
+            <td><span class="badge badge-primary">v${d.version}</span></td>
+            <td>${UI.formatBytes(d.file_size)}</td>
+            <td>${UI.renderStatusBadge(d.status)}</td>
+            <td>
+              <span style="font-size: 13px;">${uploaderName}</span>
+            </td>
+            <td>${UI.formatDate(d.created_at)}</td>
+            <td style="text-align: right;">
+              <div style="display: inline-flex; gap: 8px;">
+                <button class="btn btn-outline btn-sm" onclick="downloadDeliverable('${d.id}')" title="Download Asset">
+                  <i data-lucide="download" style="width: 14px; height: 14px;"></i>
+                </button>
+                <a href="approvals.html" class="btn btn-outline btn-sm" title="Review In Approval Center">
+                  <i data-lucide="stamp" style="width: 14px; height: 14px;"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function openUploadModal() {
+      document.getElementById('uploadForm').reset();
+      document.getElementById('dropzoneText').textContent = 'Click to browse or drag file here';
+      UI.openModal('uploadModal');
+    }
+
+    function handleFileSelect(input) {
+      if (input.files && input.files[0]) {
+        const f = input.files[0];
+        document.getElementById('dropzoneText').textContent = `Selected: ${f.name} (${UI.formatBytes(f.size)})`;
+        if (!document.getElementById('deliverableTitle').value) {
+          document.getElementById('deliverableTitle').value = f.name;
+        }
+      }
+    }
+
+    async function handleUploadDeliverable(e) {
+      e.preventDefault();
+      const projectId = document.getElementById('uploadProject').value;
+      const title = document.getElementById('deliverableTitle').value.trim();
+      const description = document.getElementById('deliverableDesc').value.trim();
+      const fileInput = document.getElementById('fileInput');
+
+      if (!fileInput.files || !fileInput.files[0]) {
+        UI.toast('Please select a file to upload.', 'error');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('project_id', projectId);
+      formData.append('title', title);
+      formData.append('description', description);
+      formData.append('file', fileInput.files[0]);
+
+      const submitBtn = document.getElementById('uploadSubmitBtn');
+      const btnText = document.getElementById('uploadBtnText');
+      const spinner = document.getElementById('uploadSpinner');
+
+      submitBtn.disabled = true;
+      btnText.style.display = 'none';
+      spinner.style.display = 'block';
+
+      try {
+        await API.upload('/deliverables', formData);
+        UI.toast('Deliverable uploaded and submitted for client review!', 'success');
+        UI.closeModal('uploadModal');
+        await loadDeliverables();
+      } catch (err) {
+        UI.toast('Upload failed: ' + err.message, 'error');
+      } finally {
+        submitBtn.disabled = false;
+        btnText.style.display = 'inline';
+        spinner.style.display = 'none';
+      }
+    }
+
+    async function downloadDeliverable(id) {
+      try {
+        const res = await API.get(`/deliverables/${id}/download`);
+        if (res.data && res.data.url) {
+          window.open(res.data.url, '_blank');
+        }
+      } catch (err) {
+        UI.toast('Failed to generate download link: ' + err.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Approval Center – ProofDesk</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    <div id="sidebar-mount"></div>
+
+    <main class="app-main">
+      <div id="topbar-mount"></div>
+
+      <div class="page-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
+          <div>
+            <h1 style="font-size: 24px; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px;">Approval Center</h1>
+            <p style="font-size: 13.5px; color: var(--text-muted);">Client review workflow with immutable sign-off verification</p>
+          </div>
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="tabs-nav">
+          <button class="tab-btn active" onclick="switchFilter('pending', this)">
+            <i data-lucide="clock" style="width: 15px; height: 15px; vertical-align: middle;"></i> Pending Approvals (<span id="countPending">0</span>)
+          </button>
+          <button class="tab-btn" onclick="switchFilter('history', this)">
+            <i data-lucide="check-check" style="width: 15px; height: 15px; vertical-align: middle;"></i> Decision History
+          </button>
+        </div>
+
+        <!-- Approvals List -->
+        <div id="approvalsContainer" style="display: flex; flex-direction: column; gap: 20px;">
+          <div class="card" style="padding: 40px; text-align: center; color: var(--text-muted);">
+            Loading approval requests...
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Review Modal -->
+  <div class="modal-backdrop" id="reviewModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title" id="reviewModalTitle">Review Deliverable</div>
+        <button class="btn btn-icon btn-outline btn-sm" onclick="UI.closeModal('reviewModal')">
+          <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+        </button>
+      </div>
+      <form id="reviewForm" onsubmit="handleReviewSubmit(event)">
+        <div class="modal-body">
+          <input type="hidden" id="reviewApprovalId">
+          <input type="hidden" id="reviewAction">
+
+          <div id="reviewPromptMessage" style="margin-bottom: 16px; font-size: 14px; font-weight: 600;"></div>
+
+          <div class="form-group">
+            <label class="form-label" for="reviewFeedback">Feedback / Notes for the Creative Team</label>
+            <textarea id="reviewFeedback" class="form-textarea" placeholder="Explain what changes are required or add approval remarks..." rows="4"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="UI.closeModal('reviewModal')">Cancel</button>
+          <button type="submit" id="submitReviewBtn" class="btn btn-primary">Confirm Decision</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/ui.js"></script>
+  <script>
+    Auth.requireAuth();
+
+    let allApprovals = [];
+    let currentFilter = 'pending';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await UI.renderLayout('approvals');
+      document.getElementById('pageTitleHeading').textContent = 'Approval Center';
+      await loadApprovals();
+    });
+
+    async function loadApprovals() {
+      try {
+        const res = await API.get('/approvals');
+        allApprovals = res.data || [];
+        renderApprovals();
+      } catch (err) {
+        console.error('Failed to load approvals:', err);
+        UI.toast('Failed to load approvals: ' + err.message, 'error');
+      }
+    }
+
+    function switchFilter(type, btn) {
+      currentFilter = type;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderApprovals();
+    }
+
+    function renderApprovals() {
+      const container = document.getElementById('approvalsContainer');
+      const pendingList = allApprovals.filter(a => a.status === 'pending');
+      const historyList = allApprovals.filter(a => a.status !== 'pending');
+
+      document.getElementById('countPending').textContent = pendingList.length;
+
+      const listToRender = (currentFilter === 'pending') ? pendingList : historyList;
+
+      if (listToRender.length === 0) {
+        container.innerHTML = `
+          <div class="card">
+            <div class="empty-state">
+              <div class="empty-state-icon"><i data-lucide="stamp"></i></div>
+              <div class="empty-state-title">No ${currentFilter} approvals</div>
+              <div class="empty-state-desc">All deliverables have been reviewed or no pending submissions exist.</div>
+            </div>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = listToRender.map(a => {
+        const d = a.deliverables || {};
+        const p = d.projects || {};
+        const events = a.approval_events || [];
+
+        return `
+          <div class="card" style="padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; margin-bottom: 18px;">
+              <div>
+                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 6px;">
+                  <h3 style="font-size: 17px; font-weight: 700; color: var(--text-main);">${d.title || 'Untitled Deliverable'}</h3>
+                  <span class="badge badge-primary">v${d.version || 1}</span>
+                  ${UI.renderStatusBadge(a.status)}
+                </div>
+                <div style="font-size: 13px; color: var(--text-muted);">
+                  Project: <a href="project-details.html?id=${p.id}" style="color: var(--primary); font-weight: 600;">${p.name || 'Project'}</a> • Submitted ${UI.formatDate(a.created_at)}
+                </div>
+              </div>
+
+              ${a.status === 'pending' ? `
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-outline" onclick="openReviewModal('${a.id}', 'revision_requested')">
+                  <i data-lucide="message-square" style="width: 15px; height: 15px;"></i> Request Revision
+                </button>
+                <button class="btn btn-success" onclick="openReviewModal('${a.id}', 'approved')">
+                  <i data-lucide="check" style="width: 15px; height: 15px;"></i> Approve Deliverable
+                </button>
+              </div>
+              ` : `
+              <div>
+                <span style="font-size: 12px; color: var(--text-muted);">Reviewed: ${UI.formatDate(a.reviewed_at)}</span>
+              </div>
+              `}
+            </div>
+
+            <!-- Notes / Feedback snippet -->
+            ${a.feedback ? `
+            <div style="background: var(--surface-alt); border-left: 3px solid var(--primary); padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13.5px; margin-bottom: 16px;">
+              <strong>Feedback:</strong> ${a.feedback}
+            </div>
+            ` : ''}
+
+            <!-- Immutable Event Audit Trail Section -->
+            <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border);">
+              <div style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; letter-spacing: 0.5px;">
+                Audit Trail (Immutable Sign-off Log)
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                ${events.map(ev => {
+                  const actor = ev.profiles ? ev.profiles.full_name : 'System User';
+                  return `
+                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text-secondary); background: var(--surface-alt); padding: 6px 12px; border-radius: var(--radius-sm);">
+                      <div>
+                        <strong>${actor}</strong> marked as <code>${ev.action}</code>
+                        ${ev.comment ? `— "${ev.comment}"` : ''}
+                      </div>
+                      <div style="color: var(--text-muted);">${UI.formatDate(ev.created_at)}</div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function openReviewModal(approvalId, action) {
+      document.getElementById('reviewApprovalId').value = approvalId;
+      document.getElementById('reviewAction').value = action;
+      document.getElementById('reviewFeedback').value = '';
+
+      const submitBtn = document.getElementById('submitReviewBtn');
+      const msg = document.getElementById('reviewPromptMessage');
+
+      if (action === 'approved') {
+        document.getElementById('reviewModalTitle').textContent = 'Approve Deliverable';
+        msg.innerHTML = '<span style="color: var(--success);">You are about to approve this deliverable version.</span>';
+        submitBtn.className = 'btn btn-success';
+        submitBtn.textContent = 'Confirm Approval';
+      } else {
+        document.getElementById('reviewModalTitle').textContent = 'Request Revisions';
+        msg.innerHTML = '<span style="color: var(--warning);">Please detail the adjustments needed for the next revision.</span>';
+        submitBtn.className = 'btn btn-warning';
+        submitBtn.textContent = 'Submit Revision Request';
+      }
+
+      UI.openModal('reviewModal');
+    }
+
+    async function handleReviewSubmit(e) {
+      e.preventDefault();
+      const approvalId = document.getElementById('reviewApprovalId').value;
+      const action = document.getElementById('reviewAction').value;
+      const feedback = document.getElementById('reviewFeedback').value.trim();
+
+      const btn = document.getElementById('submitReviewBtn');
+      btn.disabled = true;
+
+      try {
+        await API.post(`/approvals/${approvalId}/review`, {
+          action,
+          feedback
+        });
+        UI.toast('Review decision submitted successfully!', 'success');
+        UI.closeModal('reviewModal');
+        await loadApprovals();
+      } catch (err) {
+        UI.toast('Failed to submit review: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

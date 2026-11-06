@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Admin Console – ProofDesk</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    <div id="sidebar-mount"></div>
+
+    <main class="app-main">
+      <div id="topbar-mount"></div>
+
+      <div class="page-content">
+        <div style="margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="badge badge-danger">Super Admin Console</span>
+          </div>
+          <h1 style="font-size: 24px; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; margin-top: 4px;">Platform Overview & Administration</h1>
+          <p style="font-size: 13.5px; color: var(--text-muted);">Platform-wide workspace monitoring, global user accounts, and security controls</p>
+        </div>
+
+        <!-- Platform Stats -->
+        <div class="stats-grid">
+          <div class="card stat-card">
+            <div class="stat-label">Total Platform Users</div>
+            <div class="stat-value" id="admTotalUsers">0</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Workspaces</div>
+            <div class="stat-value" id="admTotalWorkspaces">0</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Total Projects</div>
+            <div class="stat-value" id="admTotalProjects">0</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Storage Consumed</div>
+            <div class="stat-value" id="admStorageUsed">0 MB</div>
+          </div>
+        </div>
+
+        <!-- User Management Table -->
+        <div class="card" style="margin-bottom: 28px;">
+          <div class="card-header">
+            <div>
+              <div class="card-title">User Accounts Directory</div>
+              <div class="card-subtitle">Global user profiles and platform authorization roles</div>
+            </div>
+          </div>
+          <div class="table-container" style="border: none;">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>System Role</th>
+                  <th>Joined</th>
+                  <th style="text-align: right;">Modify Role</th>
+                </tr>
+              </thead>
+              <tbody id="admUsersTable">
+                <tr>
+                  <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                    Loading user accounts...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Workspaces Table -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Tenant Workspaces</div>
+              <div class="card-subtitle">Active multi-tenant business workspaces</div>
+            </div>
+          </div>
+          <div class="table-container" style="border: none;">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Workspace Name</th>
+                  <th>Slug Identifier</th>
+                  <th>Owner</th>
+                  <th>Created</th>
+                </tr>
+              </thead>
+              <tbody id="admWorkspacesTable">
+                <tr>
+                  <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                    Loading workspaces...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/ui.js"></script>
+  <script>
+    Auth.requireAuth();
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await UI.renderLayout('admin');
+      document.getElementById('pageTitleHeading').textContent = 'Admin Console';
+      await loadAdminData();
+    });
+
+    async function loadAdminData() {
+      try {
+        const [overviewRes, usersRes, wsRes] = await Promise.all([
+          API.get('/admin/overview'),
+          API.get('/admin/users'),
+          API.get('/admin/workspaces')
+        ]);
+
+        if (overviewRes.data && overviewRes.data.stats) {
+          const s = overviewRes.data.stats;
+          document.getElementById('admTotalUsers').textContent = s.total_users || 0;
+          document.getElementById('admTotalWorkspaces').textContent = s.total_workspaces || 0;
+          document.getElementById('admTotalProjects').textContent = s.total_projects || 0;
+          document.getElementById('admStorageUsed').textContent = `${s.storage_used_mb || 0} MB`;
+        }
+
+        renderUsers(usersRes.data || []);
+        renderWorkspaces(wsRes.data || []);
+      } catch (err) {
+        console.error('Admin access error:', err);
+        UI.toast('Access restricted or failed: ' + err.message, 'error');
+      }
+    }
+
+    function renderUsers(users) {
+      const tbody = document.getElementById('admUsersTable');
+      tbody.innerHTML = users.map(u => `
+        <tr>
+          <td>
+            <div style="font-weight: 700; color: var(--text-main);">${u.full_name || 'Member'}</div>
+            <div style="font-size: 11.5px; color: var(--text-muted);">${u.id}</div>
+          </td>
+          <td>
+            <span class="badge ${u.role === 'super_admin' ? 'badge-danger' : (u.role === 'workspace_owner' ? 'badge-primary' : 'badge-muted')}">
+              ${u.role.replace('_', ' ')}
+            </span>
+          </td>
+          <td>${UI.formatDate(u.created_at)}</td>
+          <td style="text-align: right;">
+            <select class="form-select" style="width: auto; display: inline-block; padding: 4px 10px; font-size: 12px;" onchange="changeRole('${u.id}', this.value)">
+              <option value="super_admin" ${u.role === 'super_admin' ? 'selected' : ''}>Super Admin</option>
+              <option value="workspace_owner" ${u.role === 'workspace_owner' ? 'selected' : ''}>Workspace Owner</option>
+              <option value="workspace_member" ${u.role === 'workspace_member' ? 'selected' : ''}>Workspace Member</option>
+              <option value="client" ${u.role === 'client' ? 'selected' : ''}>Client</option>
+            </select>
+          </td>
+        </tr>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function renderWorkspaces(workspaces) {
+      const tbody = document.getElementById('admWorkspacesTable');
+      tbody.innerHTML = workspaces.map(w => {
+        const ownerName = w.profiles ? w.profiles.full_name : 'Owner';
+        return `
+          <tr>
+            <td><strong>${w.name}</strong></td>
+            <td><code>${w.slug}</code></td>
+            <td>${ownerName}</td>
+            <td>${UI.formatDate(w.created_at)}</td>
+          </tr>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    async function changeRole(userId, newRole) {
+      try {
+        await API.put(`/admin/users/${userId}/role`, { role: newRole });
+        UI.toast('User role updated', 'success');
+        await loadAdminData();
+      } catch (err) {
+        UI.toast('Failed to update role: ' + err.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>

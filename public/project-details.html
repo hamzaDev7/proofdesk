@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Details – ProofDesk</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    <div id="sidebar-mount"></div>
+
+    <main class="app-main">
+      <div id="topbar-mount"></div>
+
+      <div class="page-content">
+        <!-- Breadcrumb & Back -->
+        <div style="margin-bottom: 16px;">
+          <a href="projects.html" class="btn btn-outline btn-sm">
+            <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i> Back to Projects
+          </a>
+        </div>
+
+        <!-- Project Hero Card -->
+        <div class="card" style="margin-bottom: 24px; padding: 28px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
+            <div style="max-width: 700px;">
+              <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 8px;">
+                <h1 style="font-size: 26px; font-weight: 800; color: var(--text-main);" id="projTitle">Loading Project...</h1>
+                <span id="projStatusBadge"></span>
+                <span id="projPriorityBadge"></span>
+              </div>
+              <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6;" id="projDesc"></p>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <a href="deliverables.html" id="uploadDeliverableBtn" class="btn btn-primary">
+                <i data-lucide="upload" style="width: 15px; height: 15px;"></i> Upload Deliverable
+              </a>
+            </div>
+          </div>
+
+          <!-- Project Meta Row -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 16px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
+            <div>
+              <div class="stat-label">Client</div>
+              <div style="font-weight: 700; font-size: 14px; color: var(--text-main);" id="projClientName">—</div>
+              <div style="font-size: 12px; color: var(--text-muted);" id="projClientCompany"></div>
+            </div>
+            <div>
+              <div class="stat-label">Deadline</div>
+              <div style="font-weight: 700; font-size: 14px; color: var(--text-main);" id="projDeadline">—</div>
+            </div>
+            <div>
+              <div class="stat-label">Budget</div>
+              <div style="font-weight: 700; font-size: 14px; color: var(--text-main);" id="projBudget">$0.00</div>
+            </div>
+            <div>
+              <div class="stat-label">Completion Progress</div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px;">
+                <div class="progress-bar-container" style="flex: 1;">
+                  <div class="progress-bar-fill" id="projProgressFill" style="width: 0%;"></div>
+                </div>
+                <span style="font-weight: 700; font-size: 13px;" id="projProgressText">0%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="tabs-nav">
+          <button class="tab-btn active" onclick="switchTab('tasksTab', this)">
+            <i data-lucide="check-square" style="width: 15px; height: 15px; vertical-align: middle;"></i> Tasks (<span id="tabTasksCount">0</span>)
+          </button>
+          <button class="tab-btn" onclick="switchTab('deliverablesTab', this)">
+            <i data-lucide="layers" style="width: 15px; height: 15px; vertical-align: middle;"></i> Deliverables (<span id="tabDeliverablesCount">0</span>)
+          </button>
+          <button class="tab-btn" onclick="switchTab('commentsTab', this)">
+            <i data-lucide="message-square" style="width: 15px; height: 15px; vertical-align: middle;"></i> Comments & Feedback
+          </button>
+        </div>
+
+        <!-- Tab 1: Tasks -->
+        <div id="tasksTab" class="tab-content">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Project Tasks</div>
+              <button class="btn btn-primary btn-sm" onclick="openAddTaskModal()">
+                <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Add Task
+              </button>
+            </div>
+            <div class="table-container" style="border: none;">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 40px;"></th>
+                    <th>Task</th>
+                    <th>Priority</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="projectTasksTable">
+                  <tr>
+                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                      Loading tasks...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Deliverables -->
+        <div id="deliverablesTab" class="tab-content" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Deliverables & Approvals</div>
+              <a href="deliverables.html" class="btn btn-primary btn-sm">
+                <i data-lucide="upload" style="width: 14px; height: 14px;"></i> Upload New Deliverable
+              </a>
+            </div>
+            <div class="table-container" style="border: none;">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Deliverable</th>
+                    <th>Version</th>
+                    <th>File Type</th>
+                    <th>Status</th>
+                    <th>Date Added</th>
+                    <th style="text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="projectDeliverablesTable">
+                  <tr>
+                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                      Loading deliverables...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Comments -->
+        <div id="commentsTab" class="tab-content" style="display: none;">
+          <div class="card" style="padding: 24px;">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 20px;">Project Discussion & Stakeholder Feedback</h3>
+
+            <!-- Add Comment Form -->
+            <form onsubmit="handlePostComment(event)" style="margin-bottom: 28px;">
+              <div class="form-group">
+                <textarea id="commentInput" class="form-textarea" placeholder="Add an update, stakeholder clarification, or review feedback..." required></textarea>
+              </div>
+              <div style="text-align: right;">
+                <button type="submit" id="postCommentBtn" class="btn btn-primary">
+                  <i data-lucide="send" style="width: 14px; height: 14px;"></i> Post Comment
+                </button>
+              </div>
+            </form>
+
+            <div id="commentsList" style="display: flex; flex-direction: column; gap: 16px;">
+              <div style="color: var(--text-muted); text-align: center; padding: 20px;">
+                Loading comments...
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add Task Modal -->
+  <div class="modal-backdrop" id="addTaskModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title">Add Project Task</div>
+        <button class="btn btn-icon btn-outline btn-sm" onclick="UI.closeModal('addTaskModal')">
+          <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+        </button>
+      </div>
+      <form onsubmit="handleCreateTask(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="taskTitle">Task Title *</label>
+            <input type="text" id="taskTitle" class="form-control" placeholder="e.g. Finalize typography selection" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="taskDesc">Description</label>
+            <textarea id="taskDesc" class="form-textarea" placeholder="Detailed task requirements..."></textarea>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div class="form-group">
+              <label class="form-label" for="taskPriority">Priority</label>
+              <select id="taskPriority" class="form-select">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="taskDueDate">Due Date</label>
+              <input type="date" id="taskDueDate" class="form-control">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="UI.closeModal('addTaskModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/ui.js"></script>
+  <script>
+    Auth.requireAuth();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const projectId = urlParams.get('id');
+    let currentProject = null;
+
+    if (!projectId) {
+      window.location.href = 'projects.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await UI.renderLayout('projects');
+      document.getElementById('pageTitleHeading').textContent = 'Project Overview';
+      await loadProjectDetails();
+      await loadProjectComments();
+    });
+
+    async function loadProjectDetails() {
+      try {
+        const res = await API.get(`/projects/${projectId}`);
+        currentProject = res.data;
+
+        document.getElementById('projTitle').textContent = currentProject.name;
+        document.getElementById('projDesc').textContent = currentProject.description || 'No description provided for this project.';
+        document.getElementById('projStatusBadge').innerHTML = UI.renderStatusBadge(currentProject.status);
+        document.getElementById('projPriorityBadge').innerHTML = `<span class="badge badge-muted">${currentProject.priority}</span>`;
+        
+        if (currentProject.clients) {
+          document.getElementById('projClientName').textContent = currentProject.clients.name;
+          document.getElementById('projClientCompany').textContent = currentProject.clients.company || currentProject.clients.email;
+        } else {
+          document.getElementById('projClientName').textContent = 'Internal Project';
+          document.getElementById('projClientCompany').textContent = 'No external client';
+        }
+
+        document.getElementById('projDeadline').textContent = UI.formatDate(currentProject.deadline);
+        document.getElementById('projBudget').textContent = UI.formatCurrency(currentProject.budget);
+        
+        const prog = currentProject.progress || 0;
+        document.getElementById('projProgressFill').style.width = `${prog}%`;
+        document.getElementById('projProgressText').textContent = `${prog}%`;
+
+        // Render tasks
+        renderTasks(currentProject.tasks || []);
+        // Render deliverables
+        renderDeliverables(currentProject.deliverables || []);
+
+        const uploadBtn = document.getElementById('uploadDeliverableBtn');
+        if (uploadBtn) uploadBtn.href = `deliverables.html?project_id=${projectId}`;
+
+        lucide.createIcons();
+      } catch (err) {
+        console.error('Failed to load project:', err);
+        document.getElementById('projTitle').textContent = 'Unable to Load Project';
+        document.getElementById('projDesc').textContent = err.message || 'Please check that the project exists and you have permission to view it.';
+        UI.toast('Failed to load project details: ' + err.message, 'error');
+      }
+    }
+
+    function renderTasks(tasks) {
+      document.getElementById('tabTasksCount').textContent = tasks.length;
+      const tbody = document.getElementById('projectTasksTable');
+      if (tasks.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">
+              No tasks created yet. Click "Add Task" to get organized.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = tasks.map(t => `
+        <tr>
+          <td>
+            <input type="checkbox" ${t.status === 'done' ? 'checked' : ''} onchange="toggleTaskDone('${t.id}', this.checked)" style="cursor: pointer; width: 16px; height: 16px;">
+          </td>
+          <td>
+            <div style="font-weight: 600; text-decoration: ${t.status === 'done' ? 'line-through' : 'none'}; color: ${t.status === 'done' ? 'var(--text-muted)' : 'var(--text-main)'};">
+              ${t.title}
+            </div>
+            ${t.description ? `<div style="font-size: 12px; color: var(--text-muted);">${t.description}</div>` : ''}
+          </td>
+          <td><span class="badge badge-muted">${t.priority}</span></td>
+          <td>${UI.formatDate(t.due_date)}</td>
+          <td>${UI.renderStatusBadge(t.status)}</td>
+          <td style="text-align: right;">
+            <button class="btn btn-icon btn-outline btn-sm" onclick="deleteTask('${t.id}')" title="Delete Task">
+              <i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--danger);"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function renderDeliverables(deliverables) {
+      document.getElementById('tabDeliverablesCount').textContent = deliverables.length;
+      const tbody = document.getElementById('projectDeliverablesTable');
+      if (deliverables.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">
+              No deliverables uploaded yet.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = deliverables.map(d => `
+        <tr>
+          <td>
+            <div style="font-weight: 700; color: var(--text-main);">${d.title}</div>
+            <div style="font-size: 11.5px; color: var(--text-muted);">${UI.formatBytes(d.file_size)}</div>
+          </td>
+          <td><span class="badge badge-primary">v${d.version}</span></td>
+          <td><code style="font-size: 11.5px; color: var(--text-secondary);">${d.file_type}</code></td>
+          <td>${UI.renderStatusBadge(d.status)}</td>
+          <td>${UI.formatDate(d.created_at)}</td>
+          <td style="text-align: right;">
+            <a href="approvals.html" class="btn btn-outline btn-sm">
+              <i data-lucide="stamp" style="width: 14px; height: 14px;"></i> View Approval
+            </a>
+          </td>
+        </tr>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    async function loadProjectComments() {
+      try {
+        const res = await API.get('/comments', { project_id: projectId });
+        const comments = res.data || [];
+        const container = document.getElementById('commentsList');
+
+        if (comments.length === 0) {
+          container.innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); padding: 20px;">
+              No comments posted yet. Start the conversation!
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = comments.map(c => {
+          const author = c.profiles ? c.profiles.full_name : 'Team Member';
+          const role = c.profiles ? c.profiles.role : '';
+          return `
+            <div style="display: flex; gap: 14px; background: var(--surface-alt); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+              <div class="avatar" style="width: 32px; height: 32px; font-size: 12px;">${author.charAt(0).toUpperCase()}</div>
+              <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                  <div>
+                    <strong>${author}</strong>
+                    <span style="font-size: 11px; color: var(--text-muted); margin-left: 6px;">(${role.replace('_', ' ')})</span>
+                  </div>
+                  <div style="font-size: 11.5px; color: var(--text-muted);">${UI.formatDate(c.created_at)}</div>
+                </div>
+                <div style="font-size: 13.5px; color: var(--text-main); line-height: 1.5; white-space: pre-wrap;">${c.content}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error('Failed to load comments:', err);
+      }
+    }
+
+    async function handlePostComment(e) {
+      e.preventDefault();
+      const input = document.getElementById('commentInput');
+      const content = input.value.trim();
+      if (!content) return;
+
+      const btn = document.getElementById('postCommentBtn');
+      btn.disabled = true;
+
+      try {
+        await API.post('/comments', {
+          project_id: projectId,
+          content
+        });
+        input.value = '';
+        UI.toast('Comment posted', 'success');
+        await loadProjectComments();
+      } catch (err) {
+        UI.toast('Failed to post comment: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = 'none');
+      document.querySelectorAll('.tab-btn').forEach(tb => tb.classList.remove('active'));
+      document.getElementById(tabId).style.display = 'block';
+      btn.classList.add('active');
+    }
+
+    function openAddTaskModal() {
+      document.getElementById('taskTitle').value = '';
+      document.getElementById('taskDesc').value = '';
+      document.getElementById('taskDueDate').value = '';
+      UI.openModal('addTaskModal');
+    }
+
+    async function handleCreateTask(e) {
+      e.preventDefault();
+      const title = document.getElementById('taskTitle').value.trim();
+      const description = document.getElementById('taskDesc').value.trim();
+      const priority = document.getElementById('taskPriority').value;
+      const due_date = document.getElementById('taskDueDate').value || null;
+
+      try {
+        await API.post('/tasks', {
+          project_id: projectId,
+          title,
+          description,
+          priority,
+          due_date,
+          status: 'todo'
+        });
+        UI.toast('Task added successfully', 'success');
+        UI.closeModal('addTaskModal');
+        await loadProjectDetails();
+      } catch (err) {
+        UI.toast('Failed to add task: ' + err.message, 'error');
+      }
+    }
+
+    async function toggleTaskDone(taskId, isDone) {
+      try {
+        await API.put(`/tasks/${taskId}`, {
+          status: isDone ? 'done' : 'todo'
+        });
+        await loadProjectDetails();
+      } catch (err) {
+        UI.toast('Failed to update task: ' + err.message, 'error');
+      }
+    }
+
+    async function deleteTask(taskId) {
+      if (!confirm('Are you sure you want to remove this task?')) return;
+      try {
+        await API.delete(`/tasks/${taskId}`);
+        UI.toast('Task deleted', 'success');
+        await loadProjectDetails();
+      } catch (err) {
+        UI.toast('Failed to delete task: ' + err.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>

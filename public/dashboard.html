@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overview Dashboard – ProofDesk</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <div id="sidebar-mount"></div>
+
+    <main class="app-main">
+      <div id="topbar-mount"></div>
+
+      <div class="page-content">
+        <!-- Top header action bar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
+          <div>
+            <h1 style="font-size: 24px; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px;">Dashboard</h1>
+            <p style="font-size: 13.5px; color: var(--text-muted);">Real-time pulse of your active projects, deliverables, and approvals</p>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <a href="deliverables.html" class="btn btn-outline">
+              <i data-lucide="upload" style="width: 15px; height: 15px;"></i> Upload Deliverable
+            </a>
+            <a href="projects.html" class="btn btn-primary">
+              <i data-lucide="plus" style="width: 15px; height: 15px;"></i> New Project
+            </a>
+          </div>
+        </div>
+
+        <!-- Metric KPI Cards -->
+        <div class="stats-grid">
+          <div class="card stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Active Projects</span>
+              <div class="stat-icon"><i data-lucide="folder-kanban"></i></div>
+            </div>
+            <div class="stat-value" id="kpiActiveProjects">0</div>
+            <div class="stat-trend" id="kpiTotalProjects">Total: 0 projects</div>
+          </div>
+
+          <div class="card stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Pending Approvals</span>
+              <div class="stat-icon" style="background-color: var(--warning-bg); color: var(--warning);"><i data-lucide="stamp"></i></div>
+            </div>
+            <div class="stat-value" id="kpiPendingApprovals">0</div>
+            <div class="stat-trend"><span class="badge badge-warning" style="padding: 2px 8px;">Action required</span></div>
+          </div>
+
+          <div class="card stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Paid Volume</span>
+              <div class="stat-icon" style="background-color: var(--success-bg); color: var(--success);"><i data-lucide="check-circle-2"></i></div>
+            </div>
+            <div class="stat-value" id="kpiTotalPaid">$0.00</div>
+            <div class="stat-trend positive">Settled billing</div>
+          </div>
+
+          <div class="card stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Outstanding Invoices</span>
+              <div class="stat-icon" style="background-color: var(--info-bg); color: var(--info);"><i data-lucide="receipt"></i></div>
+            </div>
+            <div class="stat-value" id="kpiTotalOutstanding">$0.00</div>
+            <div class="stat-trend" id="kpiTotalInvoiced">Total invoiced: $0.00</div>
+          </div>
+        </div>
+
+        <!-- Analytics & Charts Grid -->
+        <div class="dashboard-charts-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 20px; margin-bottom: 28px;">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Project Status Distribution</div>
+                <div class="card-subtitle">Breakdown across development phases</div>
+              </div>
+            </div>
+            <div class="card-body" style="height: 260px; position: relative;">
+              <canvas id="projectsChart"></canvas>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Task Velocity & Status</div>
+                <div class="card-subtitle">Open vs completed action items</div>
+              </div>
+            </div>
+            <div class="card-body" style="height: 260px; position: relative;">
+              <canvas id="tasksChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Two Column: Projects List & Recent Activity -->
+        <div class="dashboard-main-grid" style="display: grid; grid-template-columns: 2fr 1.2fr; gap: 20px; align-items: start;">
+          <!-- Active Projects Section -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Active Projects</div>
+              <a href="projects.html" class="btn btn-outline btn-sm">View All Projects</a>
+            </div>
+            <div class="table-container" style="border: none; border-radius: 0;">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Project</th>
+                    <th>Client</th>
+                    <th>Progress</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboardProjectsList">
+                  <tr>
+                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                      Loading projects...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Activity Timeline -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Workspace Activity</div>
+              <span class="badge badge-muted">Audit Log</span>
+            </div>
+            <div class="card-body" id="dashboardActivityList" style="padding: 16px 20px; max-height: 480px; overflow-y: auto;">
+              <div style="color: var(--text-muted); text-align: center; padding: 20px;">
+                Loading activity log...
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/charts.js"></script>
+  <script>
+    Auth.requireAuth();
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await UI.renderLayout('dashboard');
+      document.getElementById('pageTitleHeading').textContent = 'Overview Dashboard';
+      await loadDashboardData();
+    });
+
+    async function loadDashboardData() {
+      try {
+        const res = await API.get('/reports/dashboard');
+        const data = res.data;
+
+        // Render KPI metrics
+        if (data && data.metrics) {
+          const m = data.metrics;
+          document.getElementById('kpiActiveProjects').textContent = m.active_projects || 0;
+          document.getElementById('kpiTotalProjects').textContent = `Total: ${m.total_projects || 0} projects`;
+          document.getElementById('kpiPendingApprovals').textContent = m.pending_approvals || 0;
+          document.getElementById('kpiTotalPaid').textContent = UI.formatCurrency(m.total_paid);
+          document.getElementById('kpiTotalOutstanding').textContent = UI.formatCurrency(m.total_outstanding);
+          document.getElementById('kpiTotalInvoiced').textContent = `Total invoiced: ${UI.formatCurrency(m.total_invoiced)}`;
+        }
+
+        // Render Charts
+        if (data.projects_breakdown) {
+          Charts.createProjectsDoughnut('projectsChart', data.projects_breakdown);
+        }
+        if (data.tasks_breakdown) {
+          Charts.createTasksBar('tasksChart', data.tasks_breakdown);
+        }
+
+        // Render Recent Activity
+        renderActivityTimeline(data.recent_activity || []);
+
+        // Fetch top projects for list
+        loadProjectsList();
+      } catch (err) {
+        console.error('Failed to load dashboard:', err);
+        UI.toast('Could not load dashboard metrics: ' + err.message, 'error');
+      }
+    }
+
+    async function loadProjectsList() {
+      try {
+        const res = await API.get('/projects', { limit: 5 });
+        const tbody = document.getElementById('dashboardProjectsList');
+        const projects = res.data || [];
+
+        if (projects.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                No projects yet. Click <strong>New Project</strong> to get started!
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = projects.map(p => `
+          <tr>
+            <td>
+              <a href="project-details.html?id=${p.id}" style="font-weight: 600; color: var(--text-main); display: block;">
+                ${p.name}
+              </a>
+              <span style="font-size: 11.5px; color: var(--text-muted);">${p.priority} priority</span>
+            </td>
+            <td>
+              <span style="font-size: 13px; color: var(--text-secondary);">${p.clients ? p.clients.name : 'Internal'}</span>
+            </td>
+            <td style="min-width: 120px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="progress-bar-container" style="flex: 1;">
+                  <div class="progress-bar-fill" style="width: ${p.progress || 0}%;"></div>
+                </div>
+                <span style="font-size: 11px; font-weight: 600;">${p.progress || 0}%</span>
+              </div>
+            </td>
+            <td>
+              ${UI.renderStatusBadge(p.status)}
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        console.error('Failed to load projects list:', err);
+      }
+    }
+
+    function renderActivityTimeline(activities) {
+      const container = document.getElementById('dashboardActivityList');
+      if (!activities || activities.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; color: var(--text-muted); padding: 24px;">
+            No recent activity recorded.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = activities.map(a => {
+        const actorName = a.profiles ? a.profiles.full_name : 'Team Member';
+        const projName = a.projects ? a.projects.name : '';
+        const timeFormatted = UI.formatDate(a.created_at);
+        const actionText = formatActionText(a.action, a.metadata);
+
+        return `
+          <div style="display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border);">
+            <div style="width: 28px; height: 28px; border-radius: var(--radius-full); background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0;">
+              ${actorName.charAt(0).toUpperCase()}
+            </div>
+            <div style="flex: 1; font-size: 13px;">
+              <div>
+                <strong>${actorName}</strong> ${actionText}
+                ${projName ? `<span style="color: var(--primary); font-weight: 500;"> (${projName})</span>` : ''}
+              </div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">${timeFormatted}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function formatActionText(action, metadata) {
+      switch (action) {
+        case 'deliverable_uploaded':
+          return `uploaded deliverable "${(metadata && metadata.title) || 'asset'}"`;
+        case 'approval_approved':
+          return `approved deliverable "${(metadata && metadata.deliverable_title) || ''}"`;
+        case 'approval_revision_requested':
+          return `requested revisions on "${(metadata && metadata.deliverable_title) || ''}"`;
+        case 'project_created':
+          return `created project "${(metadata && metadata.name) || ''}"`;
+        case 'invoice_created':
+          return `generated invoice #${(metadata && metadata.invoice_number) || ''}`;
+        default:
+          return action.replace(/_/g, ' ');
+      }
+    }
+  </script>
+</body>
+</html>

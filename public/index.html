@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ProofDesk – Client Project & Approval Management Platform</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Reset & Custom Variables for Landing */
+    :root {
+      --landing-hero-bg: radial-gradient(circle at 50% -20%, rgba(99, 91, 255, 0.15) 0%, rgba(59, 130, 246, 0.05) 50%, transparent 80%);
+      --glow-gradient: linear-gradient(135deg, rgba(99, 91, 255, 0.4) 0%, rgba(59, 130, 246, 0.4) 100%);
+    }
+
+    [data-theme="dark"] {
+      --landing-hero-bg: radial-gradient(circle at 50% -20%, rgba(99, 91, 255, 0.25) 0%, rgba(59, 130, 246, 0.08) 50%, transparent 80%);
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      overflow-x: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    /* Sticky Navigation */
+    .landing-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      transition: var(--transition);
+    }
+
+    [data-theme="dark"] .landing-header {
+      background: rgba(15, 23, 42, 0.85);
+    }
+
+    .landing-nav {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .nav-link {
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .nav-link:hover {
+      color: var(--primary);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Hero Section */
+    .hero-section {
+      position: relative;
+      background: var(--landing-hero-bg);
+      padding: 70px 24px 80px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .hero-container {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    .announcement-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      box-shadow: var(--shadow-xs);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 24px;
+      transition: var(--transition);
+    }
+
+    .announcement-pill:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .announcement-tag {
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .hero-title {
+      font-size: 60px;
+      line-height: 1.1;
+      font-weight: 850;
+      letter-spacing: -1.8px;
+      color: var(--text-main);
+      margin: 0 auto 24px;
+      max-width: 940px;
+    }
+
+    .hero-title .gradient-text {
+      background: linear-gradient(135deg, #635BFF 0%, #3B82F6 50%, #06B6D4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 20px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      max-width: 740px;
+      margin: 0 auto 38px;
+      font-weight: 400;
+    }
+
+    .hero-cta-group {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+    }
+
+    .hero-badges {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .hero-badges span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* App Mockup Showcase */
+    .mockup-wrapper {
+      max-width: 1120px;
+      margin: 50px auto 0;
+      position: relative;
+    }
+
+    .mockup-glow {
+      position: absolute;
+      inset: 20px;
+      background: linear-gradient(135deg, rgba(99, 91, 255, 0.3), rgba(59, 130, 246, 0.2));
+      filter: blur(50px);
+      z-index: 0;
+      border-radius: var(--radius-xl);
+      opacity: 0.7;
+    }
+
+    .mockup-window {
+      position: relative;
+      z-index: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      text-align: left;
+    }
+
+    .mockup-header {
+      background: var(--surface-alt);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .mockup-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .mockup-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+
+    .dot-red { background: #FF5F56; }
+    .dot-yellow { background: #FFBD2E; }
+    .dot-green { background: #27C93F; }
+
+    .mockup-address-bar {
+      flex: 1;
+      max-width: 480px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 4px 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mockup-content {
+      padding: 24px;
+      background: var(--bg);
+    }
+
+    .mockup-dashboard-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .mockup-grid {
+      display: grid;
+      grid-template-columns: 1.8fr 1.2fr;
+      gap: 20px;
+    }
+
+    .mockup-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-xs);
+    }
+
+    /* Social Proof Logo Bar */
+    .social-proof-section {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    .social-proof-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .brand-logos-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 48px;
+      flex-wrap: wrap;
+      opacity: 0.75;
+    }
+
+    .brand-logo-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      letter-spacing: -0.5px;
+    }
+
+    /* Workflow Section */
+    .section-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 100px 24px;
+    }
+
+    .section-header {
+      text-align: center;
+      max-width: 760px;
+      margin: 0 auto 60px;
+    }
+
+    .section-tag {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: var(--text-main);
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+
+    .section-subtitle {
+      font-size: 17px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .workflow-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      position: relative;
+    }
+
+    .workflow-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 36px 28px;
+      position: relative;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .workflow-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: rgba(99, 91, 255, 0.35);
+    }
+
+    .workflow-step-num {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      background: var(--primary-light);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 22px;
+    }
+
+    .workflow-card h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 12px;
+    }
+
+    .workflow-card p {
+      color: var(--text-secondary);
+      font-size: 14.5px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      flex: 1;
+    }
+
+    .workflow-card .step-perk {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* Bento Feature Grid */
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .bento-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 32px;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bento-item:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .bento-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-lg);
+      background: var(--primary-light);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .bento-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 10px;
+    }
+
+    .bento-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Metrics Strip */
+    .metrics-strip {
+      background: linear-gradient(135deg, #1E1B4B 0%, #0F172A 100%);
+      color: #fff;
+      padding: 70px 24px;
+    }
+
+    .metrics-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 28px;
+      text-align: center;
+    }
+
+    .metric-value {
+      font-size: 48px;
+      font-weight: 850;
+      letter-spacing: -1px;
+      margin-bottom: 6px;
+      background: linear-gradient(135deg, #A5B4FC, #67E8F9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .metric-label {
+      font-size: 14px;
+      color: #CBD5E1;
+      font-weight: 500;
+    }
+
+    /* Pricing Section */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .pricing-plan {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 36px 30px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: var(--transition);
+    }
+
+    .pricing-plan.featured {
+      border-color: var(--primary);
+      box-shadow: 0 15px 35px var(--primary-glow);
+    }
+
+    .pricing-badge {
+      position: absolute;
+      top: -13px;
+      right: 28px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .plan-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .plan-desc {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .plan-price {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-bottom: 28px;
+    }
+
+    .price-currency {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .price-amount {
+      font-size: 48px;
+      font-weight: 850;
+      letter-spacing: -1px;
+      color: var(--text-main);
+      line-height: 1;
+    }
+
+    .price-period {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .plan-features {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 32px 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .plan-features li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13.5px;
+      color: var(--text-secondary);
+    }
+
+    .plan-features li i {
+      width: 16px;
+      height: 16px;
+      color: var(--success);
+      flex-shrink: 0;
+    }
+
+    /* FAQ Accordion */
+    .faq-container {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .faq-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: var(--transition);
+    }
+
+    .faq-question {
+      padding: 20px 24px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      user-select: none;
+    }
+
+    .faq-answer {
+      padding: 0 24px 20px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      display: none;
+    }
+
+    .faq-item.active .faq-answer {
+      display: block;
+    }
+
+    .faq-item.active .faq-toggle-icon {
+      transform: rotate(180deg);
+    }
+
+    .faq-toggle-icon {
+      transition: transform 0.25s ease;
+      color: var(--text-muted);
+    }
+
+    /* Final CTA Banner */
+    .cta-banner {
+      background: linear-gradient(135deg, #4338CA 0%, #635BFF 50%, #3B82F6 100%);
+      color: #fff;
+      border-radius: var(--radius-xl);
+      padding: 60px 40px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(99, 91, 255, 0.35);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-banner-content {
+      position: relative;
+      z-index: 2;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .cta-title {
+      font-size: 42px;
+      font-weight: 850;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+      color: #fff;
+    }
+
+    .cta-desc {
+      font-size: 18px;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 32px;
+    }
+
+    .demo-callout-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(8px);
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      margin-top: 24px;
+      color: #fff;
+    }
+
+    /* Footer */
+    .site-footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 70px 24px 30px;
+    }
+
+    .footer-grid {
+      max-width: 1200px;
+      margin: 0 auto 50px;
+      display: grid;
+      grid-template-columns: 2fr repeat(3, 1fr);
+      gap: 40px;
+    }
+
+    .footer-col-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-main);
+      margin-bottom: 18px;
+    }
+
+    .footer-col-links {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .footer-col-links a {
+      color: var(--text-secondary);
+      font-size: 14px;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .footer-col-links a:hover {
+      color: var(--primary);
+    }
+
+    .footer-bottom {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* Responsive Queries */
+    @media (max-width: 1024px) {
+      .hero-title { font-size: 46px; }
+      .workflow-grid { grid-template-columns: 1fr; gap: 20px; }
+      .bento-grid { grid-template-columns: repeat(2, 1fr); }
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 36px; }
+      .pricing-grid { grid-template-columns: 1fr; max-width: 520px; }
+      .mockup-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .hero-title { font-size: 36px; letter-spacing: -1px; }
+      .hero-subtitle { font-size: 17px; }
+      .section-title { font-size: 28px; }
+      .bento-grid { grid-template-columns: 1fr; }
+      .cta-title { font-size: 30px; }
+      .cta-banner { padding: 40px 20px; }
+      .brand-logos-row { gap: 24px; }
+      .footer-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 480px) {
+      .hero-title { font-size: 30px; }
+      .hero-cta-group { flex-direction: column; width: 100%; }
+      .hero-cta-group .btn { width: 100%; }
+      .metrics-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sticky Navbar -->
+  <header class="landing-header">
+    <nav class="landing-nav">
+      <a href="index.html" class="nav-brand" title="ProofDesk Home">
+        <img src="assets/images/logo.png" alt="ProofDesk" style="height: 34px; max-width: 160px; object-fit: contain;">
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#features" class="nav-link">Features</a></li>
+        <li><a href="#workflow" class="nav-link">How It Works</a></li>
+        <li><a href="#pricing" class="nav-link">Pricing</a></li>
+        <li><a href="#faq" class="nav-link">FAQ</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <button class="btn btn-icon btn-outline btn-sm" onclick="UI.toggleTheme()" title="Toggle Dark/Light Mode">
+          <i data-lucide="moon" style="width: 16px; height: 16px;"></i>
+        </button>
+        <a href="login.html" class="btn btn-outline btn-sm">Sign In</a>
+        <a href="register.html" class="btn btn-primary btn-sm">Start Free Trial</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-container">
+      <div class="announcement-pill">
+        <span class="announcement-tag">New in 2.0</span>
+        <span>Cryptographic Audit Trails & Automated Invoicing</span>
+        <i data-lucide="arrow-right" style="width: 13px; height: 13px;"></i>
+      </div>
+
+      <h1 class="hero-title">
+        Deliver Client Work With Certainty.<br>
+        <span class="gradient-text">Get Approvals In Seconds.</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        Eliminate messy email threads and revision disputes. The all-in-one operating system for agencies and creative studios to manage deliverables, version control, immutable client sign-offs, and billing.
+      </p>
+
+      <div class="hero-cta-group">
+        <a href="register.html" class="btn btn-primary btn-lg" style="box-shadow: 0 4px 20px var(--primary-glow);">
+          <span>Start 14-Day Free Trial</span>
+          <i data-lucide="arrow-right" style="width: 18px; height: 18px;"></i>
+        </a>
+        <a href="login.html" class="btn btn-outline btn-lg" style="background: var(--surface);">
+          <i data-lucide="play-circle" style="width: 18px; height: 18px; color: var(--primary);"></i>
+          <span>Live Demo Login</span>
+        </a>
+      </div>
+
+      <div class="hero-badges">
+        <span><i data-lucide="check" style="width: 15px; height: 15px; color: var(--success);"></i> No credit card required</span>
+        <span><i data-lucide="check" style="width: 15px; height: 15px; color: var(--success);"></i> 60-second workspace setup</span>
+        <span><i data-lucide="check" style="width: 15px; height: 15px; color: var(--success);"></i> PostgreSQL RLS Security</span>
+      </div>
+
+      <!-- App Mockup Window -->
+      <div class="mockup-wrapper">
+        <div class="mockup-glow"></div>
+        <div class="mockup-window">
+          <div class="mockup-header">
+            <div class="mockup-dots">
+              <span class="mockup-dot dot-red"></span>
+              <span class="mockup-dot dot-yellow"></span>
+              <span class="mockup-dot dot-green"></span>
+            </div>
+            <div class="mockup-address-bar">
+              <i data-lucide="lock" style="width: 12px; height: 12px; color: var(--success);"></i>
+              <span>proofdesk.app/workspace/acme-brand-relaunch</span>
+            </div>
+          </div>
+
+          <div class="mockup-content">
+            <div class="mockup-dashboard-top">
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <h3 style="font-size: 18px; font-weight: 800; color: var(--text-main); margin: 0;">Global Packaging & Vector Identity Suite</h3>
+                  <span class="badge badge-primary">v2.4 Live</span>
+                </div>
+                <div style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px;">Client: Nexus Retail Brands • Milestone 3 of 4</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="badge badge-warning"><i data-lucide="clock" style="width: 12px; height: 12px;"></i> Awaiting Client Sign-Off</span>
+              </div>
+            </div>
+
+            <div class="mockup-grid">
+              <!-- Left: Deliverable Preview Box -->
+              <div class="mockup-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center;">
+                      <i data-lucide="file-check-2" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                      <div style="font-weight: 700; font-size: 14px; color: var(--text-main);">Brand_Identity_Guidelines_v2.pdf</div>
+                      <div style="font-size: 11.5px; color: var(--text-muted);">Uploaded 2h ago • 8.4 MB • 4 Revisions</div>
+                    </div>
+                  </div>
+                  <span class="badge badge-info">PDF Proof</span>
+                </div>
+
+                <div style="background: var(--surface-alt); border-radius: var(--radius-md); padding: 14px; margin-bottom: 16px; border: 1px dashed var(--border);">
+                  <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">
+                    <i data-lucide="message-square" style="width: 13px; height: 13px; color: var(--primary);"></i>
+                    <strong style="color: var(--text-main);">Client Feedback Thread</strong>
+                  </div>
+                  <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+                    "Typography scale and CMYK values look brilliant. Approved for press print run!"
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text-muted);">
+                  <span><i data-lucide="shield-check" style="width: 14px; height: 14px; color: var(--success); vertical-align: middle;"></i> Immutable Sign-off Audit Trail</span>
+                  <span style="font-weight: 600; color: var(--primary);">Audit Log #PD-8492</span>
+                </div>
+              </div>
+
+              <!-- Right: Actions & Invoice Preview -->
+              <div class="mockup-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                    <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">Milestone Invoicing</span>
+                    <span class="badge badge-success">PAID</span>
+                  </div>
+                  <div style="font-size: 26px; font-weight: 850; color: var(--text-main); margin-bottom: 4px;">$4,250.00</div>
+                  <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 18px;">Invoice #INV-2026-804 • Brand Discovery</div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                  <button class="btn btn-success btn-sm" style="width: 100%;">
+                    <i data-lucide="check" style="width: 15px; height: 15px;"></i> One-Click Client Approval
+                  </button>
+                  <button class="btn btn-outline btn-sm" style="width: 100%;">
+                    <i data-lucide="printer" style="width: 15px; height: 15px;"></i> View Formatted Receipt
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Social Proof Ticker -->
+  <section class="social-proof-section">
+    <div class="social-proof-label">Trusted by 1,400+ leading design studios, agencies, and consultancies</div>
+    <div class="brand-logos-row">
+      <div class="brand-logo-item"><i data-lucide="box"></i> NEXUS MEDIA</div>
+      <div class="brand-logo-item"><i data-lucide="layers"></i> HYPERION LABS</div>
+      <div class="brand-logo-item"><i data-lucide="compass"></i> VANGUARD DESIGN</div>
+      <div class="brand-logo-item"><i data-lucide="hexagon"></i> PULSE CREATIVE</div>
+      <div class="brand-logo-item"><i data-lucide="zap"></i> STRATUM DIGITAL</div>
+    </div>
+  </section>
+
+  <!-- 3-Step Workflow Section -->
+  <section class="section-container" id="workflow">
+    <div class="section-header">
+      <span class="section-tag">How ProofDesk Works</span>
+      <h2 class="section-title">The Frictionless Path From Draft to Approved Deliverable</h2>
+      <p class="section-subtitle">A streamlined, professional cycle that eliminates endless emails, revision confusion, and billing delays.</p>
+    </div>
+
+    <div class="workflow-grid">
+      <div class="workflow-card">
+        <div class="workflow-step-num">1</div>
+        <h3>Upload & Organize Assets</h3>
+        <p>Drop in design mockups, brand assets, PDFs, or software milestones. ProofDesk tracks every revision number automatically so your team and client never confuse v1 with v4.</p>
+        <div class="step-perk">
+          <i data-lucide="check" style="width: 16px; height: 16px; color: var(--success);"></i>
+          <span>Automated Version Sequencing</span>
+        </div>
+      </div>
+
+      <div class="workflow-card">
+        <div class="workflow-step-num">2</div>
+        <h3>One-Click Client Sign-Off</h3>
+        <p>Clients access a dedicated, clean review portal. With one click, they can approve with a recorded digital stamp or request precise revisions with contextual comments.</p>
+        <div class="step-perk">
+          <i data-lucide="check" style="width: 16px; height: 16px; color: var(--success);"></i>
+          <span>Immutable Audit Event Trail</span>
+        </div>
+      </div>
+
+      <div class="workflow-card">
+        <div class="workflow-step-num">3</div>
+        <h3>Milestone Billing & Receipts</h3>
+        <p>Turn approved milestones directly into itemized invoices. Calculate taxes, track payment status, and export clean, branded receipts bearing your official company logo.</p>
+        <div class="step-perk">
+          <i data-lucide="check" style="width: 16px; height: 16px; color: var(--success);"></i>
+          <span>Official System Logo on Statements</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Metrics Strip -->
+  <section class="metrics-strip">
+    <div class="metrics-grid">
+      <div>
+        <div class="metric-value">4.6x</div>
+        <div class="metric-label">Faster Approval Turnaround</div>
+      </div>
+      <div>
+        <div class="metric-value">100%</div>
+        <div class="metric-label">Audit Log Immutability</div>
+      </div>
+      <div>
+        <div class="metric-value">18,500+</div>
+        <div class="metric-label">Client Deliverables Approved</div>
+      </div>
+      <div>
+        <div class="metric-value">$14M+</div>
+        <div class="metric-label">Invoices Settled on Time</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bento Feature Grid -->
+  <section class="section-container" id="features">
+    <div class="section-header">
+      <span class="section-tag">Enterprise Capabilities</span>
+      <h2 class="section-title">Everything Your Agency Needs in One Unified Engine</h2>
+      <p class="section-subtitle">Engineered specifically to solve the operational chaos of client deliverables, approvals, and billing.</p>
+    </div>
+
+    <div class="bento-grid">
+      <div class="bento-item">
+        <div class="bento-icon"><i data-lucide="shield-check"></i></div>
+        <div class="bento-title">Immutable Audit Trail</div>
+        <div class="bento-desc">Every sign-off, revision request, and comment is cryptographically recorded with timestamps and user identification. Disagreements disappear.</div>
+      </div>
+
+      <div class="bento-item">
+        <div class="bento-icon"><i data-lucide="users"></i></div>
+        <div class="bento-title">Isolated Client Portals</div>
+        <div class="bento-desc">PostgreSQL Row-Level Security guarantees clients only see their own assigned projects and invoices with zero danger of cross-tenant exposure.</div>
+      </div>
+
+      <div class="bento-item">
+        <div class="bento-icon"><i data-lucide="receipt"></i></div>
+        <div class="bento-title">Automated Invoicing & Status</div>
+        <div class="bento-desc">Create multi-item invoices, edit statuses (Draft, Sent, Paid, Overdue), calculate taxes, and print official receipts with your custom system logo.</div>
+      </div>
+
+      <div class="bento-item">
+        <div class="bento-icon"><i data-lucide="layers"></i></div>
+        <div class="bento-title">Automatic Version Tracking</div>
+        <div class="bento-desc">Upload new versions of deliverables seamlessly. Full version rollback and historical review keeps the creative iteration cycle clear.</div>
+      </div>
+
+      <div class="bento-item">
+        <div class="bento-icon"><i data-lucide="bell"></i></div>
+        <div class="bento-title">Real-Time Notification Engine</div>
+        <div class="bento-desc">Immediate in-app notification badges alert team members when clients provide feedback or sign off on deliverables.</div>
+      </div>
+
+      <div class="bento-item">
+        <div class="bento-icon"><i data-lucide="bar-chart-3"></i></div>
+        <div class="bento-title">Executive Analytics</div>
+        <div class="bento-desc">Interactive Chart.js visualizations track project velocity, milestone completion rates, and outstanding accounts receivable at a glance.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section class="section-container" id="pricing" style="background: var(--surface-alt); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+    <div class="section-header">
+      <span class="section-tag">Simple, Transparent Pricing</span>
+      <h2 class="section-title">Invest in Client Clarity and Accelerated Cashflow</h2>
+      <p class="section-subtitle">All plans include unlimited clients, PostgREST cloud backend, and responsive mobile access.</p>
+    </div>
+
+    <div class="pricing-grid">
+      <!-- Starter -->
+      <div class="pricing-plan">
+        <div class="plan-name">Starter Studio</div>
+        <div class="plan-desc">Ideal for boutique studios and independent design consultants.</div>
+        <div class="plan-price">
+          <span class="price-currency">$</span>
+          <span class="price-amount">29</span>
+          <span class="price-period">/ month</span>
+        </div>
+        <ul class="plan-features">
+          <li><i data-lucide="check"></i> Up to 5 Active Workspaces</li>
+          <li><i data-lucide="check"></i> Unlimited Client Reviewers</li>
+          <li><i data-lucide="check"></i> Deliverable Version Tracking</li>
+          <li><i data-lucide="check"></i> Immutable Approval Logs</li>
+          <li><i data-lucide="check"></i> Basic Invoicing & Receipts</li>
+        </ul>
+        <a href="register.html" class="btn btn-outline" style="width: 100%;">Get Started</a>
+      </div>
+
+      <!-- Professional (Featured) -->
+      <div class="pricing-plan featured">
+        <span class="pricing-badge">Most Popular</span>
+        <div class="plan-name">Agency Pro</div>
+        <div class="plan-desc">For high-growth agencies managing high-volume client milestones.</div>
+        <div class="plan-price">
+          <span class="price-currency">$</span>
+          <span class="price-amount">79</span>
+          <span class="price-period">/ month</span>
+        </div>
+        <ul class="plan-features">
+          <li><i data-lucide="check"></i> <strong>Unlimited Workspaces & Projects</strong></li>
+          <li><i data-lucide="check"></i> Unlimited Client Portals</li>
+          <li><i data-lucide="check"></i> Custom Brand Logo on Invoices & Receipts</li>
+          <li><i data-lucide="check"></i> Interactive Executive Analytics</li>
+          <li><i data-lucide="check"></i> Real-Time Notifications Engine</li>
+          <li><i data-lucide="check"></i> Priority Email & Slack Support</li>
+        </ul>
+        <a href="register.html" class="btn btn-primary" style="width: 100%; box-shadow: 0 4px 15px var(--primary-glow);">Start 14-Day Free Trial</a>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="pricing-plan">
+        <div class="plan-name">Enterprise Fleet</div>
+        <div class="plan-desc">For large creative consultancies needing dedicated governance.</div>
+        <div class="plan-price">
+          <span class="price-currency">$</span>
+          <span class="price-amount">199</span>
+          <span class="price-period">/ month</span>
+        </div>
+        <ul class="plan-features">
+          <li><i data-lucide="check"></i> Everything in Agency Pro</li>
+          <li><i data-lucide="check"></i> Super Admin Multi-Tenant Console</li>
+          <li><i data-lucide="check"></i> Custom Domain & White-Labeling</li>
+          <li><i data-lucide="check"></i> Dedicated PostgreSQL RLS Tenant</li>
+          <li><i data-lucide="check"></i> 99.9% Uptime SLA Agreement</li>
+        </ul>
+        <a href="register.html" class="btn btn-outline" style="width: 100%;">Contact Enterprise</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="section-container" id="faq">
+    <div class="section-header">
+      <span class="section-tag">Frequently Asked Questions</span>
+      <h2 class="section-title">Everything You Need to Know About ProofDesk</h2>
+      <p class="section-subtitle">Have questions? We have answers. If you need further help, feel free to contact us.</p>
+    </div>
+
+    <div class="faq-container">
+      <div class="faq-item active">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>How does the client approval process work?</span>
+          <i data-lucide="chevron-down" class="faq-toggle-icon" style="width: 18px; height: 18px;"></i>
+        </div>
+        <div class="faq-answer">
+          When an agency uploads a deliverable, clients receive an immediate notification in their portal. The client can inspect the asset, view past versions, and either click "Approve Deliverable" or "Request Revision" with detailed feedback. Every decision creates a permanent, tamper-proof record in the audit trail.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>Do clients need to pay for seats?</span>
+          <i data-lucide="chevron-down" class="faq-toggle-icon" style="width: 18px; height: 18px;"></i>
+        </div>
+        <div class="faq-answer">
+          No! All client reviewer seats are completely free across all plans. You can invite unlimited client stakeholders to review, comment, and sign off on deliverables without incurring additional monthly seat charges.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>Can I customize invoices and receipts with my brand logo?</span>
+          <i data-lucide="chevron-down" class="faq-toggle-icon" style="width: 18px; height: 18px;"></i>
+        </div>
+        <div class="faq-answer">
+          Yes! Workspace owners can upload an official company logo in the Settings panel. This logo automatically renders across your navigation header, customer invoices, and formatted printable receipt statements.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>Can I try ProofDesk right now without registering?</span>
+          <i data-lucide="chevron-down" class="faq-toggle-icon" style="width: 18px; height: 18px;"></i>
+        </div>
+        <div class="faq-answer">
+          Yes! You can explore the full application immediately with our live demo account. Sign in at the login page using <code>demo@proofdesk.local</code> with password <code>Password123!</code>.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA Banner -->
+  <section style="max-width: 1200px; margin: 0 auto 90px; padding: 0 24px;">
+    <div class="cta-banner">
+      <div class="cta-banner-content">
+        <h2 class="cta-title">Ready to Elevate Your Client Experience?</h2>
+        <p class="cta-desc">Join thousands of creative agencies and software studios who save 10+ hours every week with streamlined deliverables and automated sign-offs.</p>
+
+        <div style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
+          <a href="register.html" class="btn btn-secondary btn-lg" style="background: #fff; color: var(--primary); font-weight: 700;">
+            Create Your Free Workspace
+            <i data-lucide="arrow-right" style="width: 18px; height: 18px;"></i>
+          </a>
+          <a href="login.html" class="btn btn-outline btn-lg" style="border-color: rgba(255,255,255,0.4); color: #fff;">
+            Sign In with Demo Credentials
+          </a>
+        </div>
+
+        <div class="demo-callout-pill">
+          <i data-lucide="key" style="width: 15px; height: 15px;"></i>
+          <span>Instant Demo Credentials: <strong>demo@proofdesk.local</strong> / <strong>Password123!</strong></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <div>
+        <a href="index.html" class="nav-brand" style="margin-bottom: 16px; display: inline-block;">
+          <img src="assets/images/logo.png" alt="ProofDesk" style="height: 32px; max-width: 150px; object-fit: contain;">
+        </a>
+        <p style="font-size: 13.5px; color: var(--text-muted); line-height: 1.6; max-width: 320px; margin-bottom: 20px;">
+          The client deliverables, immutable sign-off, and invoicing platform built for high-performance creative agencies and studios.
+        </p>
+        <div style="display: flex; gap: 12px; color: var(--text-muted);">
+          <i data-lucide="shield" style="width: 18px; height: 18px;"></i>
+          <span style="font-size: 12px; font-weight: 600;">SOC-2 Compliant Architecture</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Product</div>
+        <ul class="footer-col-links">
+          <li><a href="#features">Deliverables & Approvals</a></li>
+          <li><a href="#workflow">Immutable Audit Trails</a></li>
+          <li><a href="#features">Invoicing & Receipts</a></li>
+          <li><a href="#pricing">Pricing Plans</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Resources</div>
+        <ul class="footer-col-links">
+          <li><a href="login.html">Live Demo Login</a></li>
+          <li><a href="register.html">Sign Up Free</a></li>
+          <li><a href="#faq">Knowledge Base</a></li>
+          <li><a href="https://github.com" target="_blank" rel="noopener">Developer API</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Security & Tech</div>
+        <ul class="footer-col-links">
+          <li><a href="#">PostgreSQL RLS</a></li>
+          <li><a href="#">Supabase Cloud Backend</a></li>
+          <li><a href="#">Object-Oriented PHP</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div>&copy; 2026 ProofDesk Technologies Inc. All rights reserved.</div>
+      <div style="display: flex; gap: 20px;">
+        <a href="#" style="color: var(--text-muted); text-decoration: none;">Terms of Service</a>
+        <a href="#" style="color: var(--text-muted); text-decoration: none;">Security Policy</a>
+        <a href="#" style="color: var(--text-muted); text-decoration: none;">System Status</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/ui.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      UI.initTheme();
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+    });
+
+    function toggleFaq(el) {
+      const parent = el.closest('.faq-item');
+      if (parent) {
+        parent.classList.toggle('active');
+      }
+    }
+  </script>
+</body>
+</html>

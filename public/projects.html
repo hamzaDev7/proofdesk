@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projects Management – ProofDesk</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    <div id="sidebar-mount"></div>
+
+    <main class="app-main">
+      <div id="topbar-mount"></div>
+
+      <div class="page-content">
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
+          <div>
+            <h1 style="font-size: 24px; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px;">Projects</h1>
+            <p style="font-size: 13.5px; color: var(--text-muted);">Manage client workstreams, deliverables, and milestone deadlines</p>
+          </div>
+          <button class="btn btn-primary" onclick="openNewProjectModal()">
+            <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Create Project
+          </button>
+        </div>
+
+        <!-- Filters Bar -->
+        <div class="card" style="margin-bottom: 24px; padding: 16px 20px;">
+          <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 220px;">
+              <input type="text" id="projectSearchInput" class="form-control" placeholder="Search projects by name..." oninput="filterProjects()">
+            </div>
+            <div style="min-width: 160px;">
+              <select id="statusFilter" class="form-select" onchange="filterProjects()">
+                <option value="">All Statuses</option>
+                <option value="planning">Planning</option>
+                <option value="in_progress">In Progress</option>
+                <option value="in_review">In Review</option>
+                <option value="completed">Completed</option>
+                <option value="archived">Archived</option>
+              </select>
+            </div>
+            <div style="min-width: 150px;">
+              <select id="priorityFilter" class="form-select" onchange="filterProjects()">
+                <option value="">All Priorities</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Projects Table -->
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Project Name</th>
+                <th>Client</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Deadline</th>
+                <th>Budget</th>
+                <th>Progress</th>
+                <th style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="projectsTableBody">
+              <tr>
+                <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 40px;">
+                  Loading projects...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Create Project Modal -->
+  <div class="modal-backdrop" id="projectModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">Create New Project</div>
+        <button class="btn btn-icon btn-outline btn-sm" onclick="UI.closeModal('projectModal')">
+          <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+        </button>
+      </div>
+      <form id="projectForm" onsubmit="handleSaveProject(event)">
+        <div class="modal-body">
+          <input type="hidden" id="editProjectId">
+          
+          <div class="form-group">
+            <label class="form-label" for="projectName">Project Name *</label>
+            <input type="text" id="projectName" class="form-control" placeholder="e.g. Website Redesign & Brand Assets" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="projectClient">Assigned Client</label>
+            <select id="projectClient" class="form-select">
+              <option value="">-- No Client (Internal Project) --</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="projectDesc">Description & Scope</label>
+            <textarea id="projectDesc" class="form-textarea" placeholder="Detail the deliverables and objectives..."></textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div class="form-group">
+              <label class="form-label" for="projectStatus">Status</label>
+              <select id="projectStatus" class="form-select">
+                <option value="planning" selected>Planning</option>
+                <option value="in_progress">In Progress</option>
+                <option value="in_review">In Review</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="projectPriority">Priority</label>
+              <select id="projectPriority" class="form-select">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div class="form-group">
+              <label class="form-label" for="projectDeadline">Target Deadline</label>
+              <input type="date" id="projectDeadline" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="projectBudget">Budget ($ USD)</label>
+              <input type="number" step="0.01" id="projectBudget" class="form-control" placeholder="5000.00">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="UI.closeModal('projectModal')">Cancel</button>
+          <button type="submit" id="saveProjectBtn" class="btn btn-primary">Save Project</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/ui.js"></script>
+  <script>
+    Auth.requireAuth();
+
+    let allProjects = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await UI.renderLayout('projects');
+      document.getElementById('pageTitleHeading').textContent = 'Projects';
+      await loadClientsDropdown();
+      await loadProjects();
+    });
+
+    async function loadClientsDropdown() {
+      try {
+        const res = await API.get('/clients');
+        const select = document.getElementById('projectClient');
+        const clients = res.data || [];
+        select.innerHTML = '<option value="">-- No Client (Internal Project) --</option>' +
+          clients.map(c => `<option value="${c.id}">${c.name} (${c.company || c.email})</option>`).join('');
+      } catch (err) {
+        console.error('Failed to load clients:', err);
+      }
+    }
+
+    async function loadProjects() {
+      try {
+        const res = await API.get('/projects');
+        allProjects = res.data || [];
+        renderProjectsTable(allProjects);
+      } catch (err) {
+        console.error('Failed to load projects:', err);
+        UI.toast('Failed to load projects: ' + err.message, 'error');
+      }
+    }
+
+    function filterProjects() {
+      const search = document.getElementById('projectSearchInput').value.toLowerCase();
+      const status = document.getElementById('statusFilter').value;
+      const priority = document.getElementById('priorityFilter').value;
+
+      const filtered = allProjects.filter(p => {
+        const matchesSearch = !search || p.name.toLowerCase().includes(search) || (p.description && p.description.toLowerCase().includes(search));
+        const matchesStatus = !status || p.status === status;
+        const matchesPriority = !priority || p.priority === priority;
+        return matchesSearch && matchesStatus && matchesPriority;
+      });
+
+      renderProjectsTable(filtered);
+    }
+
+    function renderProjectsTable(projects) {
+      const tbody = document.getElementById('projectsTableBody');
+      if (projects.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8">
+              <div class="empty-state">
+                <div class="empty-state-icon"><i data-lucide="folder"></i></div>
+                <div class="empty-state-title">No projects found</div>
+                <div class="empty-state-desc">Create your first client project to start uploading deliverables and tracking approvals.</div>
+                <button class="btn btn-primary" onclick="openNewProjectModal()">Create Project</button>
+              </div>
+            </td>
+          </tr>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      tbody.innerHTML = projects.map(p => `
+        <tr>
+          <td>
+            <a href="project-details.html?id=${p.id}" style="font-weight: 700; color: var(--text-main); font-size: 14px;">
+              ${p.name}
+            </a>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+              ${p.tasks_count || 0} tasks • ${p.deliverables_count || 0} deliverables
+            </div>
+          </td>
+          <td>
+            <span style="font-weight: 500;">${p.clients ? p.clients.name : 'Internal'}</span>
+            ${p.clients && p.clients.company ? `<div style="font-size: 11.5px; color: var(--text-muted);">${p.clients.company}</div>` : ''}
+          </td>
+          <td>
+            <span class="badge ${p.priority === 'urgent' ? 'badge-danger' : (p.priority === 'high' ? 'badge-warning' : 'badge-muted')}">
+              ${p.priority}
+            </span>
+          </td>
+          <td>${UI.renderStatusBadge(p.status)}</td>
+          <td>${UI.formatDate(p.deadline)}</td>
+          <td style="font-weight: 600;">${UI.formatCurrency(p.budget)}</td>
+          <td style="min-width: 110px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div class="progress-bar-container" style="flex: 1;">
+                <div class="progress-bar-fill" style="width: ${p.progress || 0}%;"></div>
+              </div>
+              <span style="font-size: 11.5px; font-weight: 700;">${p.progress || 0}%</span>
+            </div>
+          </td>
+          <td style="text-align: right;">
+            <div style="display: inline-flex; gap: 6px;">
+              <a href="project-details.html?id=${p.id}" class="btn btn-icon btn-outline btn-sm" title="View Project Details">
+                <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+              </a>
+              <button class="btn btn-icon btn-outline btn-sm" onclick="editProject('${p.id}')" title="Edit Project">
+                <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+              </button>
+              <button class="btn btn-icon btn-outline btn-sm" onclick="deleteProject('${p.id}', '${p.name}')" title="Delete Project">
+                <i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--danger);"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function openNewProjectModal() {
+      document.getElementById('editProjectId').value = '';
+      document.getElementById('projectForm').reset();
+      document.getElementById('modalTitle').textContent = 'Create New Project';
+      UI.openModal('projectModal');
+    }
+
+    function editProject(id) {
+      const proj = allProjects.find(p => p.id === id);
+      if (!proj) return;
+
+      document.getElementById('editProjectId').value = proj.id;
+      document.getElementById('projectName').value = proj.name;
+      document.getElementById('projectClient').value = proj.client_id || '';
+      document.getElementById('projectDesc').value = proj.description || '';
+      document.getElementById('projectStatus').value = proj.status;
+      document.getElementById('projectPriority').value = proj.priority;
+      document.getElementById('projectDeadline').value = proj.deadline || '';
+      document.getElementById('projectBudget').value = proj.budget || '';
+      document.getElementById('modalTitle').textContent = 'Edit Project';
+
+      UI.openModal('projectModal');
+    }
+
+    async function handleSaveProject(e) {
+      e.preventDefault();
+      const id = document.getElementById('editProjectId').value;
+      const ws = Auth.getActiveWorkspace();
+      const wsId = localStorage.getItem('proofdesk_workspace_id') || (ws ? (ws.workspace_id || ws.id) : null);
+
+      const data = {
+        name: document.getElementById('projectName').value.trim(),
+        client_id: document.getElementById('projectClient').value || null,
+        description: document.getElementById('projectDesc').value.trim(),
+        status: document.getElementById('projectStatus').value,
+        priority: document.getElementById('projectPriority').value,
+        deadline: document.getElementById('projectDeadline').value || null,
+        budget: parseFloat(document.getElementById('projectBudget').value) || 0.00
+      };
+
+      if (wsId) {
+        data.workspace_id = wsId;
+      }
+
+      const btn = document.getElementById('saveProjectBtn');
+      btn.disabled = true;
+
+      try {
+        if (id) {
+          await API.put(`/projects/${id}`, data);
+          UI.toast('Project updated successfully', 'success');
+        } else {
+          await API.post('/projects', data);
+          UI.toast('Project created successfully', 'success');
+        }
+        UI.closeModal('projectModal');
+        await loadProjects();
+      } catch (err) {
+        UI.toast(err.message || 'Error saving project', 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function deleteProject(id, name) {
+      if (!confirm(`Are you sure you want to delete project "${name}"? All associated tasks and deliverables will be removed.`)) {
+        return;
+      }
+
+      try {
+        await API.delete(`/projects/${id}`);
+        UI.toast('Project deleted successfully', 'success');
+        await loadProjects();
+      } catch (err) {
+        UI.toast(err.message || 'Failed to delete project', 'error');
+      }
+    }
+  </script>
+</body>
+</html>

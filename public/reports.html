@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports & Analytics – ProofDesk</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <div id="sidebar-mount"></div>
+
+    <main class="app-main">
+      <div id="topbar-mount"></div>
+
+      <div class="page-content">
+        <div style="margin-bottom: 24px;">
+          <h1 style="font-size: 24px; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px;">Workspace Reports & Analytics</h1>
+          <p style="font-size: 13.5px; color: var(--text-muted);">Executive insights into production velocity, approval turnaround, and revenue metrics</p>
+        </div>
+
+        <!-- Analytics Overview Cards -->
+        <div class="stats-grid">
+          <div class="card stat-card">
+            <div class="stat-label">Total Projects</div>
+            <div class="stat-value" id="repTotalProjects">0</div>
+            <div class="stat-trend" id="repActiveProjects">0 Active</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Total Work Tasks</div>
+            <div class="stat-value" id="repTotalTasks">0</div>
+            <div class="stat-trend" id="repDoneTasks">0 Completed</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Invoiced Revenue</div>
+            <div class="stat-value" id="repTotalInvoiced">$0.00</div>
+            <div class="stat-trend positive" id="repTotalPaid">$0.00 Collected</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Pending Approvals</div>
+            <div class="stat-value" id="repPendingApprovals">0</div>
+            <div class="stat-trend"><span class="badge badge-warning">Awaiting sign-off</span></div>
+          </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="charts-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 24px;">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Project Delivery Pipeline</div>
+            </div>
+            <div class="card-body" style="height: 300px; position: relative;">
+              <canvas id="pipelineChart"></canvas>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Task Execution Status</div>
+            </div>
+            <div class="card-body" style="height: 300px; position: relative;">
+              <canvas id="tasksExecutionChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/charts.js"></script>
+  <script>
+    Auth.requireAuth();
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await UI.renderLayout('reports');
+      document.getElementById('pageTitleHeading').textContent = 'Reports';
+      await loadReports();
+    });
+
+    async function loadReports() {
+      try {
+        const res = await API.get('/reports/dashboard');
+        const data = res.data;
+
+        if (data.metrics) {
+          const m = data.metrics;
+          document.getElementById('repTotalProjects').textContent = m.total_projects || 0;
+          document.getElementById('repActiveProjects').textContent = `${m.active_projects || 0} active in progress`;
+          document.getElementById('repTotalInvoiced').textContent = UI.formatCurrency(m.total_invoiced);
+          document.getElementById('repTotalPaid').textContent = `${UI.formatCurrency(m.total_paid)} collected`;
+          document.getElementById('repPendingApprovals').textContent = m.pending_approvals || 0;
+        }
+
+        if (data.tasks_breakdown) {
+          const tb = data.tasks_breakdown;
+          document.getElementById('repTotalTasks').textContent = tb.total || 0;
+          document.getElementById('repDoneTasks').textContent = `${tb.done || 0} completed`;
+          Charts.createTasksBar('tasksExecutionChart', tb);
+        }
+
+        if (data.projects_breakdown) {
+          Charts.createProjectsDoughnut('pipelineChart', data.projects_breakdown);
+        }
+      } catch (err) {
+        console.error('Failed to load reports:', err);
+        UI.toast('Failed to load reports: ' + err.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>

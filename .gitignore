@@ -1,0 +1,25 @@
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Dependency directories
+/vendor/
+composer.phar
+
+# Application logs & cache
+storage/logs/*.log
+storage/logs/*.json
+!storage/logs/.gitkeep
+storage/cache/*
+
+# Operating System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clients Directory – ProofDesk</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    <div id="sidebar-mount"></div>
+
+    <main class="app-main">
+      <div id="topbar-mount"></div>
+
+      <div class="page-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
+          <div>
+            <h1 style="font-size: 24px; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px;">Clients</h1>
+            <p style="font-size: 13.5px; color: var(--text-muted);">Manage brand accounts, stakeholder contacts, and linked deliverables</p>
+          </div>
+          <button class="btn btn-primary" onclick="openNewClientModal()">
+            <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i> Add Client
+          </button>
+        </div>
+
+        <div class="card" style="margin-bottom: 24px; padding: 16px 20px;">
+          <input type="text" id="clientSearchInput" class="form-control" placeholder="Search clients by name, company, or email..." oninput="filterClients()">
+        </div>
+
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Client Name</th>
+                <th>Company</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Active Projects</th>
+                <th>Created</th>
+                <th style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="clientsTableBody">
+              <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 40px;">
+                  Loading clients...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Client Modal -->
+  <div class="modal-backdrop" id="clientModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title" id="clientModalTitle">Add New Client</div>
+        <button class="btn btn-icon btn-outline btn-sm" onclick="UI.closeModal('clientModal')">
+          <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+        </button>
+      </div>
+      <form id="clientForm" onsubmit="handleSaveClient(event)">
+        <div class="modal-body">
+          <input type="hidden" id="editClientId">
+
+          <div class="form-group">
+            <label class="form-label" for="clientName">Primary Contact Name *</label>
+            <input type="text" id="clientName" class="form-control" placeholder="Sarah Jenkins" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="clientCompany">Company / Brand</label>
+            <input type="text" id="clientCompany" class="form-control" placeholder="Nexus Retail Brands">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="clientEmail">Email Address *</label>
+            <input type="email" id="clientEmail" class="form-control" placeholder="sarah@nexusretail.com" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="clientPhone">Phone Number</label>
+            <input type="text" id="clientPhone" class="form-control" placeholder="+1 (555) 234-5678">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="clientAddress">Billing Address</label>
+            <textarea id="clientAddress" class="form-textarea" placeholder="Street, City, State, ZIP"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="UI.closeModal('clientModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Client</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/ui.js"></script>
+  <script>
+    Auth.requireAuth();
+
+    let allClients = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await UI.renderLayout('clients');
+      document.getElementById('pageTitleHeading').textContent = 'Clients Directory';
+      await loadClients();
+    });
+
+    async function loadClients() {
+      try {
+        const res = await API.get('/clients');
+        allClients = res.data || [];
+        renderClientsTable(allClients);
+      } catch (err) {
+        console.error('Failed to load clients:', err);
+        UI.toast('Failed to load clients: ' + err.message, 'error');
+      }
+    }
+
+    function filterClients() {
+      const q = document.getElementById('clientSearchInput').value.toLowerCase();
+      const filtered = allClients.filter(c => {
+        return !q || c.name.toLowerCase().includes(q) ||
+          (c.company && c.company.toLowerCase().includes(q)) ||
+          c.email.toLowerCase().includes(q);
+      });
+      renderClientsTable(filtered);
+    }
+
+    function renderClientsTable(clients) {
+      const tbody = document.getElementById('clientsTableBody');
+      if (clients.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7">
+              <div class="empty-state">
+                <div class="empty-state-icon"><i data-lucide="users"></i></div>
+                <div class="empty-state-title">No clients found</div>
+                <div class="empty-state-desc">Add client contacts so deliverables and invoices can be routed to them.</div>
+                <button class="btn btn-primary" onclick="openNewClientModal()">Add Client</button>
+              </div>
+            </td>
+          </tr>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      tbody.innerHTML = clients.map(c => {
+        const projectsCount = (c.projects || []).length;
+        return `
+          <tr>
+            <td>
+              <div style="font-weight: 700; color: var(--text-main); font-size: 14px;">${c.name}</div>
+            </td>
+            <td>
+              <span style="font-weight: 600;">${c.company || '—'}</span>
+            </td>
+            <td>
+              <a href="mailto:${c.email}" style="color: var(--primary);">${c.email}</a>
+            </td>
+            <td>${c.phone || '—'}</td>
+            <td>
+              <span class="badge badge-primary">${projectsCount} projects</span>
+            </td>
+            <td>${UI.formatDate(c.created_at)}</td>
+            <td style="text-align: right;">
+              <div style="display: inline-flex; gap: 6px;">
+                <button class="btn btn-icon btn-outline btn-sm" onclick="editClient('${c.id}')" title="Edit Client">
+                  <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+                </button>
+                <button class="btn btn-icon btn-outline btn-sm" onclick="deleteClient('${c.id}', '${c.name}')" title="Delete Client">
+                  <i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--danger);"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function openNewClientModal() {
+      document.getElementById('editClientId').value = '';
+      document.getElementById('clientForm').reset();
+      document.getElementById('clientModalTitle').textContent = 'Add New Client';
+      UI.openModal('clientModal');
+    }
+
+    function editClient(id) {
+      const c = allClients.find(item => item.id === id);
+      if (!c) return;
+
+      document.getElementById('editClientId').value = c.id;
+      document.getElementById('clientName').value = c.name;
+      document.getElementById('clientCompany').value = c.company || '';
+      document.getElementById('clientEmail').value = c.email;
+      document.getElementById('clientPhone').value = c.phone || '';
+      document.getElementById('clientAddress').value = c.address || '';
+      document.getElementById('clientModalTitle').textContent = 'Edit Client';
+
+      UI.openModal('clientModal');
+    }
+
+    async function handleSaveClient(e) {
+      e.preventDefault();
+      const id = document.getElementById('editClientId').value;
+      const data = {
+        name: document.getElementById('clientName').value.trim(),
+        company: document.getElementById('clientCompany').value.trim(),
+        email: document.getElementById('clientEmail').value.trim(),
+        phone: document.getElementById('clientPhone').value.trim(),
+        address: document.getElementById('clientAddress').value.trim()
+      };
+
+      try {
+        if (id) {
+          await API.put(`/clients/${id}`, data);
+          UI.toast('Client updated successfully', 'success');
+        } else {
+          await API.post('/clients', data);
+          UI.toast('Client created successfully', 'success');
+        }
+        UI.closeModal('clientModal');
+        await loadClients();
+      } catch (err) {
+        UI.toast('Error saving client: ' + err.message, 'error');
+      }
+    }
+
+    async function deleteClient(id, name) {
+      if (!confirm(`Are you sure you want to remove client "${name}"?`)) return;
+      try {
+        await API.delete(`/clients/${id}`);
+        UI.toast('Client removed', 'success');
+        await loadClients();
+      } catch (err) {
+        UI.toast('Failed to delete client: ' + err.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>
