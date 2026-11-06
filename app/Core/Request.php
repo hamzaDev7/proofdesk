@@ -18,7 +18,11 @@ class Request
     {
         $this->method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
         
-        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+        $uri = $_GET['__route']
+            ?? $_SERVER['HTTP_X_VERCEL_PATH']
+            ?? $_SERVER['HTTP_X_NOW_PATH']
+            ?? $_SERVER['REQUEST_URI']
+            ?? '/';
         $parts = explode('?', $uri, 2);
         $this->path = rawurldecode($parts[0]);
 

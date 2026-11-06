@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+// Handle Vercel and proxy original requested URI
+if (isset($_GET['__route'])) {
+    $_SERVER['REQUEST_URI'] = $_GET['__route'];
+} elseif (isset($_SERVER['HTTP_X_VERCEL_PATH'])) {
+    $_SERVER['REQUEST_URI'] = $_SERVER['HTTP_X_VERCEL_PATH'];
+} elseif (isset($_SERVER['HTTP_X_NOW_PATH'])) {
+    $_SERVER['REQUEST_URI'] = $_SERVER['HTTP_X_NOW_PATH'];
+}
+
 // Static file handling for PHP built-in web server (php -S)
 $uri = $_SERVER['REQUEST_URI'] ?? '/';
 $path = parse_url($uri, PHP_URL_PATH);
